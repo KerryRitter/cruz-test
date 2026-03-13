@@ -3,6 +3,7 @@ import { DRIZZLE, type DrizzleDatabase } from '@cruzjs/core/shared/database/driz
 import { eq, and, sql, asc, inArray } from 'drizzle-orm';
 import { comments, commentVotes } from './comments.schema';
 import { posts } from '@/features/posts/posts.schema';
+import { subredditBans } from '@/features/moderation/moderation.schema';
 import type { Comment } from './comments.schema';
 
 export type CreateCommentInput = {
@@ -26,6 +27,29 @@ export class CommentsService {
   }
 
   async create(authorId: string, input: CreateCommentInput): Promise<Comment> {
+    const [post] = await this.db
+      .select({ subredditId: posts.subredditId })
+      .from(posts)
+      .where(eq(posts.id, input.postId))
+      .limit(1);
+
+    if (post) {
+      const [ban] = await this.db
+        .select()
+        .from(subredditBans)
+        .where(
+          and(
+            eq(subredditBans.subredditId, post.subredditId),
+            eq(subredditBans.userId, authorId),
+          ),
+        )
+        .limit(1);
+
+      if (ban) {
+        throw new Error('You are banned from this subreddit');
+      }
+    }
+
     let depth = 0;
 
     if (input.parentCommentId) {

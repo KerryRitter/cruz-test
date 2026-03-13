@@ -15,6 +15,7 @@ export const posts = sqliteTable('Posts', {
   body: text('body'),
   score: integer('score').notNull().default(0),
   commentCount: integer('commentCount').notNull().default(0),
+  isRemoved: integer('isRemoved', { mode: 'boolean' }).notNull().default(false),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .notNull()
     .$defaultFn(() => new Date()),

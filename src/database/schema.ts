@@ -6,3 +6,4 @@ export * from "../features/subreddits/subreddits.schema";
 export * from "../features/posts/posts.schema";
 export * from "../features/votes/votes.schema";
 export * from "../features/comments/comments.schema";
+export * from "../features/moderation/moderation.schema";

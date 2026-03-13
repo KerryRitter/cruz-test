@@ -33,7 +33,7 @@ export default function SubredditPage() {
     { retry: false },
   );
 
-  const { data: postsList, isLoading: postsLoading } = trpc.posts.listBySubreddit.useQuery(
+  const { data: postsList, isLoading: postsLoading, refetch: refetchPosts } = trpc.posts.listBySubreddit.useQuery(
     { subredditId: subreddit?.id ?? '', sort },
     { enabled: !!subreddit?.id },
   );
@@ -50,8 +50,15 @@ export default function SubredditPage() {
     },
   });
 
+  const removePostMutation = trpc.moderation.removePost.useMutation({
+    onSuccess: () => {
+      refetchPosts();
+    },
+  });
+
   const isMember = membership?.some((s) => s.id === subreddit?.id) ?? false;
   const userRole = membership?.find((s) => s.id === subreddit?.id)?.role;
+  const isModerator = userRole === 'moderator';
   const isLoggedIn = !!membership;
 
   if (isLoading) {
@@ -102,6 +109,14 @@ export default function SubredditPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {isModerator && (
+              <Link
+                to={`/r/${name}/mod`}
+                className="px-4 py-2 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-200 transition-colors text-sm font-medium"
+              >
+                Mod Tools
+              </Link>
+            )}
             {isLoggedIn && isMember && (
               <Link
                 to={`/r/${name}/submit`}
@@ -198,6 +213,22 @@ export default function SubredditPage() {
                       <span>{timeAgo(createdAt)}</span>
                       <span>&middot;</span>
                       <span>{post.commentCount} {post.commentCount === 1 ? 'comment' : 'comments'}</span>
+                      {isModerator && subreddit && (
+                        <>
+                          <span>&middot;</span>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              removePostMutation.mutate({ subredditId: subreddit.id, postId: post.id });
+                            }}
+                            disabled={removePostMutation.isPending}
+                            className="text-red-600 hover:text-red-700 font-medium"
+                          >
+                            Remove
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

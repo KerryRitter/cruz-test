@@ -3,6 +3,7 @@ import { DRIZZLE, type DrizzleDatabase } from '@cruzjs/core/shared/database/driz
 import { eq, and, desc, inArray, sql } from 'drizzle-orm';
 import { posts } from './posts.schema';
 import { subreddits, subredditMembers } from '@/features/subreddits/subreddits.schema';
+import { subredditBans } from '@/features/moderation/moderation.schema';
 import type { CreatePostInput } from './posts.validation';
 import type { Post } from './posts.schema';
 
@@ -15,6 +16,21 @@ export class PostsService {
   ) {}
 
   async create(authorId: string, input: CreatePostInput) {
+    const [ban] = await this.db
+      .select()
+      .from(subredditBans)
+      .where(
+        and(
+          eq(subredditBans.subredditId, input.subredditId),
+          eq(subredditBans.userId, authorId),
+        ),
+      )
+      .limit(1);
+
+    if (ban) {
+      throw new Error('You are banned from this subreddit');
+    }
+
     const [membership] = await this.db
       .select()
       .from(subredditMembers)
@@ -49,7 +65,7 @@ export class PostsService {
     return this.db
       .select()
       .from(posts)
-      .where(eq(posts.subredditId, subredditId))
+      .where(and(eq(posts.subredditId, subredditId), eq(posts.isRemoved, false)))
       .orderBy(desc(orderColumn))
       .limit(50);
   }
@@ -81,8 +97,8 @@ export class PostsService {
     const orderColumn = sort === 'top' ? posts.score : posts.createdAt;
 
     const conditions = subredditIds
-      ? inArray(posts.subredditId, subredditIds)
-      : undefined;
+      ? and(inArray(posts.subredditId, subredditIds), eq(posts.isRemoved, false))
+      : eq(posts.isRemoved, false);
 
     const results = await this.db
       .select({
@@ -93,6 +109,7 @@ export class PostsService {
         body: posts.body,
         score: posts.score,
         commentCount: posts.commentCount,
+        isRemoved: posts.isRemoved,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
         subredditName: subreddits.name,
@@ -116,6 +133,7 @@ export class PostsService {
         body: posts.body,
         score: posts.score,
         commentCount: posts.commentCount,
+        isRemoved: posts.isRemoved,
         createdAt: posts.createdAt,
         updatedAt: posts.updatedAt,
         subredditName: subreddits.name,

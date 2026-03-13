@@ -28,6 +28,7 @@ export default createCruzRoutes({
       route(":name", "features/subreddits/routes/subreddits.$name.tsx"),
       route(":name/submit", "features/posts/routes/posts.create.tsx"),
       route(":name/comments/:id", "features/posts/routes/posts.$id.tsx"),
+      route(":name/mod", "features/moderation/routes/moderation.mod.tsx"),
     ]),
     ...prefix("u", [
       route(":userId", "features/karma/routes/karma.$userId.tsx"),
