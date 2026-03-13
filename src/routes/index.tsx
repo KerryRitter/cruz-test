@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Link, useLoaderData } from 'react-router';
 import { trpc } from '@/trpc/client';
-import { withLoaderMiddleware } from '@cruzjs/core/routing/middleware';
-import { getSession } from '@cruzjs/core/shared/middleware/session.middleware';
-import { PostsService } from '@/features/posts/posts.service';
 import type { LoaderFunctionArgs } from 'react-router';
 
 export const loader = async (args: LoaderFunctionArgs) => {
-  await import('@/setup.server');
+  const [{ withLoaderMiddleware }, { getSession }, { PostsService }] = await Promise.all([
+    import('@cruzjs/core/routing/middleware'),
+    import('@cruzjs/core/shared/middleware/session.middleware'),
+    import('@/features/posts/posts.service'),
+  ]);
   return withLoaderMiddleware([args], async ({ request, container }) => {
     const session = await getSession(request, container);
     const userId = session?.user.id ?? null;

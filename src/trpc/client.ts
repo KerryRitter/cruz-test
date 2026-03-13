@@ -1,5 +1,5 @@
 import { createTRPCHooks, createTRPCClientFactory, createDefaultQueryClient, registerTRPC } from '@cruzjs/core/trpc/client';
-import { registerOrgTRPC } from '@cruzjs/start/orgs';
+import { registerOrgTRPC } from '@cruzjs/start/orgs/org.hooks';
 import type { AppRouter } from './router';
 
 export const trpc = createTRPCHooks<AppRouter>();

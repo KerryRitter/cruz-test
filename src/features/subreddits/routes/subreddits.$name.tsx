@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useParams, Link, useLoaderData } from 'react-router';
 import { trpc } from '@/trpc/client';
-import { withLoaderMiddleware } from '@cruzjs/core/routing/middleware';
-import { SubredditsService } from '@/features/subreddits/subreddits.service';
-import { PostsService } from '@/features/posts/posts.service';
 import type { LoaderFunctionArgs } from 'react-router';
 
 export const loader = async (args: LoaderFunctionArgs) => {
-  await import('@/setup.server');
+  const [{ withLoaderMiddleware }, { SubredditsService }, { PostsService }] = await Promise.all([
+    import('@cruzjs/core/routing/middleware'),
+    import('@/features/subreddits/subreddits.service'),
+    import('@/features/posts/posts.service'),
+  ]);
   return withLoaderMiddleware([args], async ({ params, container }) => {
     const subredditsService = container.resolve(SubredditsService);
     const postsService = container.resolve(PostsService);
