@@ -26,6 +26,8 @@ export default createCruzRoutes({
     ]),
     ...prefix("r", [
       route(":name", "features/subreddits/routes/subreddits.$name.tsx"),
+      route(":name/submit", "features/posts/routes/posts.create.tsx"),
+      route(":name/comments/:id", "features/posts/routes/posts.$id.tsx"),
     ]),
   ],
 }) satisfies RouteConfig;

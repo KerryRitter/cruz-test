@@ -1,9 +1,28 @@
-import { useParams } from 'react-router';
-import { Link } from 'react-router';
+import { useState } from 'react';
+import { useParams, Link } from 'react-router';
 import { trpc } from '@/trpc/client';
+
+function timeAgo(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) {
+    return 'just now';
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 export default function SubredditPage() {
   const { name } = useParams<{ name: string }>();
+  const [sort, setSort] = useState<'new' | 'top'>('new');
+
   const { data: subreddit, isLoading, error } = trpc.subreddits.getByName.useQuery(
     { name: name! },
     { enabled: !!name },
@@ -12,6 +31,11 @@ export default function SubredditPage() {
   const { data: membership, refetch: refetchMembership } = trpc.subreddits.mySubscriptions.useQuery(
     undefined,
     { retry: false },
+  );
+
+  const { data: postsList, isLoading: postsLoading } = trpc.posts.listBySubreddit.useQuery(
+    { subredditId: subreddit?.id ?? '', sort },
+    { enabled: !!subreddit?.id },
   );
 
   const joinMutation = trpc.subreddits.join.useMutation({
@@ -28,6 +52,7 @@ export default function SubredditPage() {
 
   const isMember = membership?.some((s) => s.id === subreddit?.id) ?? false;
   const userRole = membership?.find((s) => s.id === subreddit?.id)?.role;
+  const isLoggedIn = !!membership;
 
   if (isLoading) {
     return <div className="p-8">Loading...</div>;
@@ -76,7 +101,15 @@ export default function SubredditPage() {
               )}
             </div>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
+            {isLoggedIn && isMember && (
+              <Link
+                to={`/r/${name}/submit`}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+              >
+                New Post
+              </Link>
+            )}
             {isMember ? (
               <button
                 onClick={() => leaveMutation.mutate({ subredditId: subreddit.id })}
@@ -98,13 +131,75 @@ export default function SubredditPage() {
         </div>
       </div>
 
-      {/* Posts area - placeholder */}
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-        <div className="text-center py-12 text-slate-500">
-          <p className="text-lg font-medium">No posts yet</p>
-          <p className="mt-2">Be the first to share something in r/{subreddit.name}!</p>
-        </div>
+      {/* Sort tabs */}
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={() => setSort('new')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            sort === 'new'
+              ? 'bg-brand-600 text-white'
+              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          New
+        </button>
+        <button
+          onClick={() => setSort('top')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            sort === 'top'
+              ? 'bg-brand-600 text-white'
+              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          Top
+        </button>
       </div>
+
+      {/* Posts list */}
+      {postsLoading ? (
+        <div className="p-8 text-center text-slate-500">Loading posts...</div>
+      ) : !postsList || postsList.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+          <div className="text-center py-12 text-slate-500">
+            <p className="text-lg font-medium">No posts yet</p>
+            <p className="mt-2">Be the first to share something in r/{subreddit.name}!</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {postsList.map((post) => {
+            const authorDisplay = post.authorId.slice(0, 8) + '...';
+            const createdAt = new Date(post.createdAt);
+
+            return (
+              <Link
+                key={post.id}
+                to={`/r/${name}/comments/${post.id}`}
+                className="block bg-white rounded-lg shadow-sm border border-slate-200 p-4 hover:border-slate-300 transition-colors"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex flex-col items-center text-sm text-slate-500 min-w-[40px]">
+                    <span className="font-semibold text-slate-900">{post.score}</span>
+                    <span className="text-xs">points</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-medium text-slate-900 leading-snug">
+                      {post.title}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
+                      <span>u/{authorDisplay}</span>
+                      <span>&middot;</span>
+                      <span>{timeAgo(createdAt)}</span>
+                      <span>&middot;</span>
+                      <span>{post.commentCount} {post.commentCount === 1 ? 'comment' : 'comments'}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
