@@ -7,6 +7,10 @@ import {
 } from "@react-router/dev/routes";
 import { createCruzRoutes } from "@cruzjs/core/routing/create-routes";
 import { registerCruzStartRoutes } from "@cruzjs/start/routing";
+import { SubredditsModule } from "./features/subreddits/subreddits.module";
+import { PostsModule } from "./features/posts/posts.module";
+import { ModerationModule } from "./features/moderation/moderation.module";
+import { KarmaModule } from "./features/karma/karma.module";
 
 export default createCruzRoutes({
   route,
@@ -17,21 +21,8 @@ export default createCruzRoutes({
   framework: {
     registrars: [registerCruzStartRoutes],
   },
-  featureRoutes: [],
+  modules: [SubredditsModule, PostsModule, ModerationModule, KarmaModule],
   routes: [
     index("routes/index.tsx"),
-    ...prefix("subreddits", [
-      index("features/subreddits/routes/subreddits._index.tsx"),
-      route("create", "features/subreddits/routes/subreddits.create.tsx"),
-    ]),
-    ...prefix("r", [
-      route(":name", "features/subreddits/routes/subreddits.$name.tsx"),
-      route(":name/submit", "features/posts/routes/posts.create.tsx"),
-      route(":name/comments/:id", "features/posts/routes/posts.$id.tsx"),
-      route(":name/mod", "features/moderation/routes/moderation.mod.tsx"),
-    ]),
-    ...prefix("u", [
-      route(":userId", "features/karma/routes/karma.$userId.tsx"),
-    ]),
   ],
 }) satisfies RouteConfig;

@@ -58,16 +58,18 @@ Always follow this order:
 5. Response models (`<domain>.models.ts`)
 6. Service with `@injectable()` (`<domain>.service.ts`)
 7. Container module (`<domain>.container.ts`)
-8. tRPC router with proper procedures (`<domain>.router.ts`)
+8. tRPC router with proper procedures (`<domain>.trpc.ts`)
 
 ### Phase 3: Service Provider
-9. Service provider (`<domain>.provider.ts`)
-10. Register in `apps/web/src/entry.server.tsx`
+9. Module (`<domain>.module.ts`) — `@Module` with providers, routers, routes
+10. Routes (`<domain>.routes.ts`) — export function with `helpers.prefix/index/route`; route files in `features/<domain>/routes/` named `<domain>._index.tsx` etc.
+11. Provider (`<domain>.provider.ts`) — minimal `{ module: <Domain>Module }`
+12. Register provider in `entry.server.tsx`; add module to `modules: [...]` in `routes.ts`
 
 ### Phase 4: UI
-11. React Router routes
-12. React components with tRPC hooks
-13. Integration and navigation
+13. Route page components in `features/<domain>/routes/` (default exports)
+14. React components with tRPC hooks
+15. Integration and navigation
 
 ## CruzJS CLI Commands
 

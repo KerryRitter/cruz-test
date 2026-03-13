@@ -53,7 +53,7 @@ export default function TasksPage() {
 - Loading spinner, error display, empty state
 - Permission-based visibility (`canManage`)
 
-Register in provider's `registerRoutes()` if using Service Provider pattern.
+Register routes in `<feature>.routes.ts`, reference in `@Module({ routes: ... })`, add module to `modules: [...]` in `routes.ts`.
 
 ---
 

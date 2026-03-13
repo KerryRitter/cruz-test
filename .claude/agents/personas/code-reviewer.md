@@ -93,10 +93,9 @@ git diff main...HEAD
 - [ ] Audit logging on sensitive mutations
 
 **Service Provider**:
-- [ ] Extends `BaseServiceProvider`
-- [ ] `register()` loads container module
-- [ ] `registerRouters()` returns router map
-- [ ] `registerRoutes()` returns route array
+- [ ] `module: <Name>Module` set (preferred over manual methods)
+- [ ] Routes declared in `<feature>.routes.ts`, referenced in `@Module({ routes: ... })`
+- [ ] Module added to `modules: [...]` in `routes.ts` via `createCruzRoutes`
 - [ ] Registered in `apps/web/src/entry.server.tsx`
 
 **React Components**:

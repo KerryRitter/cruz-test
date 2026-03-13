@@ -246,25 +246,28 @@ Write `.cruz-agent/local/{BRANCH}/PLAN.md`:
 4. [ ] `<domain>.models.ts` — Response type aliases
 5. [ ] `<domain>.service.ts` — @injectable(), CRUD methods, filter by orgId/userId
 6. [ ] `<domain>.container.ts` — bind service .inSingletonScope()
-7. [ ] `<domain>.router.ts` — orgProcedure/protectedProcedure, requirePermission(), audit log
+7. [ ] `<domain>.trpc.ts` — orgProcedure/protectedProcedure, requirePermission(), audit log
 
 ### Phase 3: Service Provider
 
-8. [ ] `<domain>.provider.ts` — register(), registerRouters(), registerRoutes()
-9. [ ] Register in `apps/web/src/entry.server.tsx`
+8. [ ] `<domain>.module.ts` — @Module with providers, routers, routes
+9. [ ] `<domain>.routes.ts` — export function <domain>Routes(helpers) with prefix/index/route
+10. [ ] `<domain>.provider.ts` — minimal: `{ module: <Domain>Module }`
+11. [ ] Register provider in `apps/web/src/entry.server.tsx`
+12. [ ] Add module to `modules: [...]` in `apps/web/src/routes.ts`
 
 ### Phase 4: UI (if applicable)
 
-10. [ ] Route file — default export, useOutletContext<OrgContext>()
-11. [ ] List component — tRPC query, loading/error/empty states, canManage check
-12. [ ] Form component — onSubmit/onCancel/isLoading/defaultValues props
-13. [ ] Create modal — Dialog wrapping form
-14. [ ] Wire navigation
+13. [ ] Route files — `features/<domain>/routes/<domain>._index.tsx`, default export, useOutletContext<OrgContext>()
+14. [ ] List component — tRPC query, loading/error/empty states, canManage check
+15. [ ] Form component — onSubmit/onCancel/isLoading/defaultValues props
+16. [ ] Create modal — Dialog wrapping form
+17. [ ] Wire navigation
 
 ### Phase 5: Events & Jobs (if needed)
 
-15. [ ] Event class + emit in service + listener in provider
-16. [ ] Job handler + job creator + register in container
+18. [ ] Event class + emit in service + listener in provider
+19. [ ] Job handler + job creator + register in container
 
 ## Security Checklist
 

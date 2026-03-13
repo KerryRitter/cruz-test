@@ -142,7 +142,7 @@ Write to `.cruz-agent/local/{BRANCH}/PLAN.md`:
 6. [ ] **Container** — `apps/web/src/features/<domain>/<domain>.container.ts`
    - `options.bind<Service>(Service).toSelf().inSingletonScope()`
 
-7. [ ] **Router** — `apps/web/src/features/<domain>/<domain>.router.ts`
+7. [ ] **Router** — `apps/web/src/features/<domain>/<domain>.trpc.ts`
    - `orgProcedure` or `protectedProcedure` per ownership model
    - `requirePermission(ctx.org, '<resource>:read/write')` on org mutations
    - `getAppContainer().get<Service>(Service)` for DI
@@ -150,44 +150,49 @@ Write to `.cruz-agent/local/{BRANCH}/PLAN.md`:
 
 ### Phase 3: Service Provider
 
-8. [ ] **Provider** — `apps/web/src/features/<domain>/<domain>.provider.ts`
-   - `register(container)` → `container.load(<Domain>Container)`
-   - `registerRouters()` → `{ <domain>: <domain>Router }`
-   - `registerRoutes()` → `[{ path: '...', element: <Page /> }]` (if UI)
-   - `registerEventListeners(...)` (if events)
+8. [ ] **Module** — `apps/web/src/features/<domain>/<domain>.module.ts`
+   - `@Module({ providers: [...], routers: { <domain>: <domain>Trpc }, routes: <domain>Routes })`
 
-9. [ ] **Register** — `apps/web/src/entry.server.tsx`
-   - `registerProvider(new <Domain>Provider())`
+9. [ ] **Routes** — `apps/web/src/features/<domain>/<domain>.routes.ts`
+   - `export function <domain>Routes(helpers: CruzRouteHelpers)`
+   - `helpers.prefix(...)`, `helpers.index(...)`, `helpers.route(...)`
+
+10. [ ] **Provider** — `apps/web/src/features/<domain>/<domain>.provider.ts`
+    - `export const <Domain>Provider: ServiceProvider = { module: <Domain>Module };`
+
+11. [ ] **Register** — `apps/web/src/entry.server.tsx` + `apps/web/src/routes.ts`
+    - `registerProvider(<Domain>Provider)`
+    - Add `<Domain>Module` to `modules: [...]` in `createCruzRoutes`
 
 ### Phase 4: UI {(skip if backend-only)}
 
-10. [ ] **Route file** — `apps/web/src/routes/{path}.tsx`
+12. [ ] **Route files** — `apps/web/src/features/<domain>/routes/<domain>._index.tsx` (etc.)
     - Default export
     - `useOutletContext<OrgContext>()` for org routes
 
-11. [ ] **List component** — `apps/web/src/components/<domain>/<Name>List.tsx`
+13. [ ] **List component** — `apps/web/src/components/<domain>/<Name>List.tsx`
     - `export const`
     - `trpc.<domain>.list.useQuery()`
     - Loading spinner, error display, empty state
     - `canManage` permission check
 
-12. [ ] **Form component** — `apps/web/src/components/<domain>/<Name>Form.tsx`
+14. [ ] **Form component** — `apps/web/src/components/<domain>/<Name>Form.tsx`
     - Props: `onSubmit`, `onCancel`, `isLoading`, `defaultValues?`
 
-13. [ ] **Create modal** — `apps/web/src/components/<domain>/Create<Name>Modal.tsx`
+15. [ ] **Create modal** — `apps/web/src/components/<domain>/Create<Name>Modal.tsx`
     - `Dialog` from `@cruzjs/ui`
     - Props: `open`, `onOpenChange`, `onSuccess?`
 
-14. [ ] **Wire up** — navigation, tRPC mutations, `onSuccess={() => refetch()}`
+16. [ ] **Wire up** — navigation, tRPC mutations, `onSuccess={() => refetch()}`
 
 ### Phase 5: Events & Jobs {(if needed)}
 
-15. [ ] **Domain Event** (if triggering side effects)
+17. [ ] **Domain Event** (if triggering side effects)
     - `apps/web/src/features/<domain>/events/<event>.event.ts`
     - `extends DomainEvent`
     - Emit in service, listen in provider
 
-16. [ ] **Job Handler** (if async processing needed)
+18. [ ] **Job Handler** (if async processing needed)
     - `apps/web/src/features/<domain>/handlers/<job>.handler.ts`
     - `implements JobHandler`, registered via `JOB_HANDLER` symbol
 

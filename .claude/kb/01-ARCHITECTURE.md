@@ -17,15 +17,16 @@ src/
 │       ├── index.ts
 │       ├── <name>.provider.ts
 │       ├── <name>.module.ts
-│       ├── <name>.router.ts
+│       ├── <name>.routes.ts     # React Router route config
+│       ├── <name>.trpc.ts
 │       ├── <name>.service.ts
 │       ├── <name>.schema.ts
 │       ├── <name>.validation.ts
 │       ├── <name>.models.ts
-│       ├── routes/          # Feature route components
-│       │   ├── index.tsx
-│       │   └── $id.tsx
-│       └── events/          # Domain events (optional)
+│       ├── routes/              # Route page components
+│       │   ├── <name>._index.tsx
+│       │   └── <name>.$id.tsx
+│       └── events/              # Domain events (optional)
 ├── components/              # Shared React components
 ├── contexts/                # React context providers
 └── trpc/
@@ -91,18 +92,40 @@ Browser → React Router Loader/Action
 
 ## Feature Module Pattern
 
-Every feature is self-contained. Routes live inside the feature, not in a global routes folder:
+Every feature is self-contained. Routes are declared in `<feature>.routes.ts`, referenced in `@Module`, and activated by adding the module to `createCruzRoutes`. **Never** manually wire routes in `routes.ts` with `prefix()`/`route()`.
 
 ```typescript
-// src/routes.ts — point to feature route files
-import { prefix, index, route } from '@react-router/dev/routes';
+// src/features/notes/notes.routes.ts
+import type { CruzRouteHelpers } from '@cruzjs/core/routing';
 
-export default [
-  ...prefix('notes', [
-    index('features/notes/routes/index.tsx'),
-    route(':id', 'features/notes/routes/$id.tsx'),
-  ]),
-] satisfies RouteConfig;
+export function notesRoutes(helpers: CruzRouteHelpers) {
+  return [
+    ...helpers.prefix('notes', [
+      helpers.index('features/notes/routes/notes._index.tsx'),
+      helpers.route(':id', 'features/notes/routes/notes.$id.tsx'),
+    ]),
+  ];
+}
+```
+
+```typescript
+// src/features/notes/notes.module.ts
+import { notesRoutes } from './notes.routes';
+
+@Module({ providers: [NotesService], routers: { notes: notesTrpc }, routes: notesRoutes })
+export class NotesModule {}
+```
+
+```typescript
+// src/routes.ts — add module, never wire routes manually
+import { createCruzRoutes } from '@cruzjs/core/routing';
+import { NotesModule } from './features/notes/notes.module';
+
+export default createCruzRoutes({
+  dir: import.meta.dirname,
+  modules: [NotesModule],
+  routes: [index('routes/index.tsx')],
+});
 ```
 
 Register features in `setup.server.ts`:

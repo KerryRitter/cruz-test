@@ -37,11 +37,14 @@ Use as either:
 apps/web/src/features/<domain>/
 ├── index.ts
 ├── <domain>.provider.ts      # Service provider
-├── <domain>.container.ts     # DI bindings
-├── <domain>.router.ts        # tRPC router
+├── <domain>.module.ts        # @Module (providers, routers, routes, events)
+├── <domain>.routes.ts        # React Router route config
+├── <domain>.trpc.ts          # tRPC router
 ├── <domain>.service.ts       # Business logic
 ├── <domain>.validation.ts    # Zod schemas
 ├── <domain>.models.ts        # Response types
+├── routes/                   # Route page components
+│   └── <domain>._index.tsx
 └── events/                   # Optional
 ```
 
@@ -97,16 +100,25 @@ export const MyContainer = new ContainerModule((options) => {
 });
 ```
 
-## Service Provider
+## Module + Provider
 
 ```typescript
-export class MyProvider extends BaseServiceProvider {
-  register(container: Container) { container.load(MyContainer); }
-  registerRouters() { return { my: myRouter }; }
-  registerRoutes() { return [{ path: '/my-feature', element: <MyPage /> }]; }
-  registerEventListeners(container, events) { /* listen */ }
+// <domain>.routes.ts
+export function myRoutes(helpers: CruzRouteHelpers) {
+  return [...helpers.prefix('my-feature', [
+    helpers.index('features/my-feature/routes/my-feature._index.tsx'),
+  ])];
 }
+
+// <domain>.module.ts
+@Module({ providers: [MyService], routers: { my: myTrpc }, routes: myRoutes })
+export class MyModule {}
+
+// <domain>.provider.ts — minimal, routes live in @Module
+export const MyProvider: ServiceProvider = { module: MyModule };
+
 // Register in apps/web/src/entry.server.tsx
+// routes.ts: createCruzRoutes({ modules: [MyModule], ... })
 ```
 
 ## Component

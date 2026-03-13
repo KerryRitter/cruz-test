@@ -69,7 +69,7 @@ Read persona: `.claude/agents/personas/code-reviewer.md`
 - Drizzle schema: `createId()` IDs, indexes on FK columns
 - Services: `@injectable()` + `@inject()` in constructor
 - Routers: correct procedure type, permission checks, DI container usage
-- Service providers: `register()`, `registerRouters()`, `registerRoutes()`
+- Service providers: `module:` set, routes in `<feature>.routes.ts` via `@Module`, module in `createCruzRoutes`
 - Components: tRPC hooks, loading/error/empty states
 
 **Code Quality**:

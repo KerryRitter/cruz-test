@@ -18,7 +18,7 @@ export const NotesProvider: ServiceProvider = {
 
 The `@Module` on `NotesModule` handles providers, routers, and event listeners automatically.
 
-### With Routes and Boot
+### With Boot
 
 ```typescript
 // src/features/blog/blog.provider.ts
@@ -28,15 +28,8 @@ import { BlogModule } from './blog.module';
 import { BlogService } from './blog.service';
 
 export const BlogProvider: ServiceProvider = {
+  // Routes are declared in blog.routes.ts and referenced in @Module — not here
   module: BlogModule,
-
-  // Optional: Register React Router routes
-  registerRoutes() {
-    return [
-      { path: '/blog', element: <BlogListPage /> },
-      { path: '/blog/:id', element: <BlogPostPage /> },
-    ];
-  },
 
   // Optional: Run after all providers loaded
   async boot(container: Container) {
@@ -80,8 +73,7 @@ setUserProviders(() => userProviders);
    ├── Create CruzContainer
    ├── Load Core + Pro + Start modules
    ├── For each user provider:
-   │   ├── loadModule(provider.module)     # @Module providers, routers, events
-   │   ├── registerRoutes()                # React Router routes (optional)
+   │   ├── loadModule(provider.module)     # @Module providers, routers, events, routes
    │   └── registerEventListeners()        # Additional listeners (optional)
    └── For each user provider:
        └── boot(container)                 # Post-init (optional)
@@ -151,15 +143,16 @@ export class MyModule {}
 src/features/blog/
 ├── index.ts                 # Barrel exports
 ├── blog.provider.ts         # ServiceProvider
-├── blog.module.ts           # @Module (providers, routers, events)
-├── blog.router.ts           # tRPC router
+├── blog.module.ts           # @Module (providers, routers, events, routes)
+├── blog.routes.ts           # React Router route config
+├── blog.trpc.ts             # tRPC router
 ├── blog.service.ts          # @Injectable business logic
 ├── blog.schema.ts           # Drizzle table
 ├── blog.validation.ts       # Zod schemas
 ├── blog.models.ts           # TypeScript types
-├── routes/                  # React Router route components
-│   ├── index.tsx
-│   └── $id.tsx
+├── routes/                  # Route page components
+│   ├── blog._index.tsx
+│   └── blog.$id.tsx
 └── events/                  # Domain events
     ├── index.ts
     └── post-created.event.ts
