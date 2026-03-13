@@ -18,5 +18,14 @@ export default createCruzRoutes({
     registrars: [registerCruzStartRoutes],
   },
   featureRoutes: [],
-  routes: [index("routes/index.tsx")],
+  routes: [
+    index("routes/index.tsx"),
+    ...prefix("subreddits", [
+      index("features/subreddits/routes/subreddits._index.tsx"),
+      route("create", "features/subreddits/routes/subreddits.create.tsx"),
+    ]),
+    ...prefix("r", [
+      route(":name", "features/subreddits/routes/subreddits.$name.tsx"),
+    ]),
+  ],
 }) satisfies RouteConfig;

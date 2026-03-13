@@ -354,11 +354,4 @@ CREATE TABLE `Subscription` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `Subscription_stripeSubscriptionId_unique` ON `Subscription` (`stripeSubscriptionId`);--> statement-breakpoint
-CREATE TABLE `notes` (
-	`id` text PRIMARY KEY NOT NULL,
-	`user_id` text NOT NULL,
-	`title` text NOT NULL,
-	`content` text DEFAULT '' NOT NULL,
-	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
-	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
-);
+

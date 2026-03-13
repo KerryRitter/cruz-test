@@ -5,9 +5,10 @@ import { setUserProviders } from "@cruzjs/core/framework/application.server";
 import type { ServiceProvider } from "@cruzjs/core/framework/service-provider";
 import * as schema from "@/database/schema";
 import { StartProvider } from "@cruzjs/start/start.provider";
+import { SubredditsProvider } from "@/features/subreddits/subreddits.provider";
 
 DrizzleService.setSchema(schema);
 
-export const userProviders: ServiceProvider[] = [new StartProvider()];
+export const userProviders: ServiceProvider[] = [new StartProvider(), SubredditsProvider];
 
 setUserProviders(() => userProviders);

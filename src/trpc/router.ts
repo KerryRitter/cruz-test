@@ -1,12 +1,12 @@
-import { router } from '@cruzjs/core/trpc/context';
-import { registerCruzCoreTrpcRouters } from '@cruzjs/core/trpc/routers';
-import { registerCruzStartTrpcRouters } from '@cruzjs/start/trpc/routers';
-import { notesTrpc } from '@/features/notes/notes.trpc';
+import { router } from "@cruzjs/core/trpc/context";
+import { registerCruzCoreTrpcRouters } from "@cruzjs/core/trpc/routers";
+import { registerCruzStartTrpcRouters } from "@cruzjs/start/trpc/routers";
+import { subredditsTrpc } from "@/features/subreddits/subreddits.trpc";
 
 const appRouter = router({
   ...registerCruzCoreTrpcRouters(),
   ...registerCruzStartTrpcRouters(),
-  notes: notesTrpc,
+  subreddits: subredditsTrpc,
 });
 
 export type AppRouter = typeof appRouter;
