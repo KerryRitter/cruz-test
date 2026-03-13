@@ -1,90 +1,64 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useLoaderData } from 'react-router';
 import { trpc } from '@/trpc/client';
+import { withLoaderMiddleware } from '@cruzjs/core/routing/middleware';
+import { SubredditsService } from '@/features/subreddits/subreddits.service';
+import { PostsService } from '@/features/posts/posts.service';
+import type { LoaderFunctionArgs } from 'react-router';
+
+import '@/setup.server';
+
+export const loader = async (args: LoaderFunctionArgs) =>
+  withLoaderMiddleware([args], async ({ params, container }) => {
+    const subredditsService = container.resolve(SubredditsService);
+    const postsService = container.resolve(PostsService);
+
+    const subreddit = await subredditsService.getByName(params.name!);
+    if (!subreddit) {
+      throw new Response('Not Found', { status: 404 });
+    }
+
+    const posts = await postsService.listBySubreddit(subreddit.id, 'new');
+    return { subreddit, posts };
+  });
 
 function timeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) {
-    return 'just now';
-  }
+  if (seconds < 60) return 'just now';
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m ago`;
-  }
+  if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
 
-function PostCardSkeleton() {
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 animate-pulse">
-      <div className="flex items-start gap-4">
-        <div className="flex flex-col items-center min-w-[40px] gap-1">
-          <div className="h-5 w-6 bg-slate-200 rounded" />
-          <div className="h-3 w-8 bg-slate-200 rounded" />
-        </div>
-        <div className="flex-1 space-y-2">
-          <div className="h-5 w-3/4 bg-slate-200 rounded" />
-          <div className="h-3 w-1/2 bg-slate-200 rounded" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SubredditHeaderSkeleton() {
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6 animate-pulse">
-      <div className="space-y-3">
-        <div className="h-7 w-48 bg-slate-200 rounded" />
-        <div className="h-5 w-64 bg-slate-200 rounded" />
-        <div className="h-4 w-32 bg-slate-200 rounded" />
-      </div>
-    </div>
-  );
-}
-
 export default function SubredditPage() {
+  const { subreddit: initialSubreddit, posts: initialPosts } = useLoaderData<typeof loader>();
   const { name } = useParams<{ name: string }>();
   const [sort, setSort] = useState<'new' | 'top'>('new');
   const [showJoinMessage, setShowJoinMessage] = useState(false);
 
-  const { data: subreddit, isLoading, error } = trpc.subreddits.getByName.useQuery(
+  const { data: querySubreddit } = trpc.subreddits.getByName.useQuery(
     { name: name! },
     { enabled: !!name },
   );
+  const subreddit = querySubreddit ?? initialSubreddit;
 
   const { data: membership, refetch: refetchMembership } = trpc.subreddits.mySubscriptions.useQuery(
     undefined,
     { retry: false },
   );
 
-  const { data: postsList, isLoading: postsLoading, refetch: refetchPosts } = trpc.posts.listBySubreddit.useQuery(
+  const { data: queryPosts, refetch: refetchPosts } = trpc.posts.listBySubreddit.useQuery(
     { subredditId: subreddit?.id ?? '', sort },
     { enabled: !!subreddit?.id },
   );
+  const postsList = queryPosts ?? (sort === 'new' ? initialPosts : undefined);
 
-  const joinMutation = trpc.subreddits.join.useMutation({
-    onSuccess: () => {
-      refetchMembership();
-    },
-  });
-
-  const leaveMutation = trpc.subreddits.leave.useMutation({
-    onSuccess: () => {
-      refetchMembership();
-    },
-  });
-
-  const removePostMutation = trpc.moderation.removePost.useMutation({
-    onSuccess: () => {
-      refetchPosts();
-    },
-  });
+  const joinMutation = trpc.subreddits.join.useMutation({ onSuccess: () => refetchMembership() });
+  const leaveMutation = trpc.subreddits.leave.useMutation({ onSuccess: () => refetchMembership() });
+  const removePostMutation = trpc.moderation.removePost.useMutation({ onSuccess: () => refetchPosts() });
 
   const isMember = membership?.some((s) => s.id === subreddit?.id) ?? false;
   const userRole = membership?.find((s) => s.id === subreddit?.id)?.role;
@@ -92,55 +66,13 @@ export default function SubredditPage() {
   const isLoggedIn = !!membership;
 
   const handleNewPostClick = () => {
-    if (!isLoggedIn) {
-      // Will navigate to login
-      return;
-    }
-    if (!isMember) {
+    if (isLoggedIn && !isMember) {
       setShowJoinMessage(true);
       setTimeout(() => setShowJoinMessage(false), 3000);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="max-w-4xl mx-auto p-8">
-        <SubredditHeaderSkeleton />
-        <div className="flex items-center gap-2 mb-4">
-          <div className="h-9 w-16 bg-slate-200 rounded-lg animate-pulse" />
-          <div className="h-9 w-16 bg-slate-200 rounded-lg animate-pulse" />
-        </div>
-        <div className="space-y-3">
-          <PostCardSkeleton />
-          <PostCardSkeleton />
-          <PostCardSkeleton />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-          <div className="text-center py-12">
-            <h2 className="text-xl font-semibold text-slate-900">Community not found</h2>
-            <p className="text-slate-600 mt-2">r/{name} does not exist.</p>
-            <Link
-              to="/subreddits"
-              className="text-indigo-600 hover:text-indigo-700 mt-4 inline-block font-medium"
-            >
-              Browse communities
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!subreddit) {
-    return null;
-  }
+  if (!subreddit) return null;
 
   return (
     <div className="max-w-4xl mx-auto p-8">
@@ -173,7 +105,6 @@ export default function SubredditPage() {
                 Mod Tools
               </Link>
             )}
-            {/* New Post button - always visible */}
             {isLoggedIn && isMember ? (
               <Link
                 to={`/r/${name}/submit`}
@@ -217,7 +148,6 @@ export default function SubredditPage() {
           </div>
         </div>
 
-        {/* Join message tooltip */}
         {showJoinMessage && (
           <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
             <p className="text-amber-800 text-sm">
@@ -232,7 +162,6 @@ export default function SubredditPage() {
           </div>
         )}
 
-        {/* Not logged in message */}
         {!isLoggedIn && (
           <div className="mt-4 bg-indigo-50 border border-indigo-200 rounded-lg p-3">
             <p className="text-indigo-800 text-sm">
@@ -273,13 +202,7 @@ export default function SubredditPage() {
       </div>
 
       {/* Posts list */}
-      {postsLoading ? (
-        <div className="space-y-3">
-          <PostCardSkeleton />
-          <PostCardSkeleton />
-          <PostCardSkeleton />
-        </div>
-      ) : !postsList || postsList.length === 0 ? (
+      {!postsList || postsList.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
           <div className="text-center py-12 text-slate-500">
             <p className="text-lg font-medium">No posts yet</p>
@@ -299,7 +222,6 @@ export default function SubredditPage() {
           {postsList.map((post) => {
             const authorDisplay = post.authorId.slice(0, 8) + '...';
             const createdAt = new Date(post.createdAt);
-
             return (
               <Link
                 key={post.id}
@@ -312,9 +234,7 @@ export default function SubredditPage() {
                     <span className="text-xs">points</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-medium text-slate-900 leading-snug">
-                      {post.title}
-                    </h3>
+                    <h3 className="text-lg font-medium text-slate-900 leading-snug">{post.title}</h3>
                     <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
                       <Link
                         to={`/u/${post.authorId}`}
@@ -327,7 +247,7 @@ export default function SubredditPage() {
                       <span>{timeAgo(createdAt)}</span>
                       <span>&middot;</span>
                       <span>{post.commentCount} {post.commentCount === 1 ? 'comment' : 'comments'}</span>
-                      {isModerator && subreddit && (
+                      {isModerator && (
                         <>
                           <span>&middot;</span>
                           <button

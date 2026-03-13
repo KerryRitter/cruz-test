@@ -1,57 +1,41 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLoaderData } from 'react-router';
 import { trpc } from '@/trpc/client';
+import { withLoaderMiddleware } from '@cruzjs/core/routing/middleware';
+import { getSession } from '@cruzjs/core/shared/middleware/session.middleware';
+import { PostsService } from '@/features/posts/posts.service';
+import type { LoaderFunctionArgs } from 'react-router';
+
+// Ensure DI providers are registered before loader runs
+import '@/setup.server';
+
+export const loader = async (args: LoaderFunctionArgs) =>
+  withLoaderMiddleware([args], async ({ request, container }) => {
+    const session = await getSession(request, container);
+    const userId = session?.user.id ?? null;
+    const postsService = container.resolve(PostsService);
+    const posts = await postsService.getFeed(userId, 'new');
+    return { posts };
+  });
 
 function timeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) {
-    return 'just now';
-  }
+  if (seconds < 60) return 'just now';
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m ago`;
-  }
+  if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours}h ago`;
-  }
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
 
-function PostCardSkeleton() {
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 animate-pulse">
-      <div className="flex items-start gap-4">
-        <div className="flex flex-col items-center min-w-[40px] gap-1">
-          <div className="h-5 w-6 bg-slate-200 rounded" />
-          <div className="h-3 w-8 bg-slate-200 rounded" />
-        </div>
-        <div className="flex-1 space-y-2">
-          <div className="h-3 w-24 bg-slate-200 rounded" />
-          <div className="h-5 w-3/4 bg-slate-200 rounded" />
-          <div className="h-3 w-1/2 bg-slate-200 rounded" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FeedSkeleton() {
-  return (
-    <div className="space-y-3">
-      <PostCardSkeleton />
-      <PostCardSkeleton />
-      <PostCardSkeleton />
-      <PostCardSkeleton />
-    </div>
-  );
-}
-
 export default function HomePage() {
+  const { posts: initialPosts } = useLoaderData<typeof loader>();
   const [sort, setSort] = useState<'new' | 'top'>('new');
 
-  const { data: feedPosts, isLoading } = trpc.posts.feed.useQuery({ sort });
+  // tRPC runs in background for live updates; loader data covers initial render
+  const { data: queryPosts } = trpc.posts.feed.useQuery({ sort });
+  const feedPosts = queryPosts ?? initialPosts;
 
   const { data: subscriptions } = trpc.subreddits.mySubscriptions.useQuery(
     undefined,
@@ -72,7 +56,6 @@ export default function HomePage() {
       <div className="flex flex-col md:flex-row gap-6">
         {/* Main feed */}
         <div className="flex-1 min-w-0">
-          {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-slate-900">Home</h1>
           </div>
@@ -101,7 +84,6 @@ export default function HomePage() {
             </button>
           </div>
 
-          {/* Personalized feed notice */}
           {showPersonalizedNotice && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <p className="text-blue-800 text-sm">
@@ -113,12 +95,9 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Not logged in banner */}
           {!isLoggedIn && (
             <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-4">
-              <p className="text-indigo-900 text-sm font-medium mb-2">
-                Welcome to the community!
-              </p>
+              <p className="text-indigo-900 text-sm font-medium mb-2">Welcome to the community!</p>
               <p className="text-indigo-800 text-sm mb-3">
                 Sign in to join communities, create posts, and vote.
               </p>
@@ -139,10 +118,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Posts list */}
-          {isLoading ? (
-            <FeedSkeleton />
-          ) : !feedPosts || feedPosts.length === 0 ? (
+          {!feedPosts || feedPosts.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
               <div className="text-center py-12 text-slate-500">
                 <p className="text-lg font-medium">No posts yet</p>
@@ -159,7 +135,6 @@ export default function HomePage() {
               {feedPosts.map((post) => {
                 const authorDisplay = post.authorId.slice(0, 8) + '...';
                 const createdAt = new Date(post.createdAt);
-
                 return (
                   <Link
                     key={post.id}
@@ -213,7 +188,6 @@ export default function HomePage() {
               Quick Links
             </h2>
 
-            {/* Sign-in prompt for logged-out users */}
             {!isLoggedIn && (
               <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                 <p className="text-sm text-slate-700 mb-2">Join the conversation</p>
@@ -234,7 +208,6 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Create Post button for logged-in users */}
             {isLoggedIn && hasSubscriptions && (
               <Link
                 to={`/r/${subscriptions![0].name}/submit`}
@@ -246,9 +219,7 @@ export default function HomePage() {
 
             {isLoggedIn && !hasSubscriptions && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <p className="text-amber-800 text-xs">
-                  Join a community to start posting!
-                </p>
+                <p className="text-amber-800 text-xs">Join a community to start posting!</p>
               </div>
             )}
 
