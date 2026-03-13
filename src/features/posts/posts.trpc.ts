@@ -43,4 +43,13 @@ export const postsTrpc = router({
         throw error;
       }
     }),
+
+  feed: publicProcedure
+    .input(z.object({ sort: z.enum(['new', 'top']).default('new') }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session?.user?.id ?? null;
+      const container = await getAppContainer();
+      const service = container.resolve(PostsService);
+      return service.getFeed(userId, input.sort);
+    }),
 });

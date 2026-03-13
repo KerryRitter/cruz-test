@@ -1,269 +1,197 @@
-import {
-  Box,
-  Button,
-  Code,
-  Container,
-  Flex,
-  Heading,
-  HStack,
-  SimpleGrid,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
-import { useNavigate } from "react-router";
+import { useState } from 'react';
+import { Link } from 'react-router';
+import { trpc } from '@/trpc/client';
 
-const features = [
-  {
-    icon: "📝",
-    title: "Notes",
-    desc: "Create, edit, and organize your notes. Built with tRPC, Drizzle ORM, and Cloudflare D1.",
-  },
-  {
-    icon: "🔐",
-    title: "Authentication",
-    desc: "Secure login and registration with session management, invite codes, and email verification.",
-  },
-  {
-    icon: "🏢",
-    title: "Organizations",
-    desc: "Multi-tenant org management with role-based permissions and member invitation flows.",
-  },
-  {
-    icon: "⚡",
-    title: "Edge-Native",
-    desc: "Runs on Cloudflare Pages with D1, KV, Workers AI, and Queues — zero cold starts.",
-  },
-  {
-    icon: "🎨",
-    title: "Great UI",
-    desc: "Chakra UI + Tailwind CSS with pre-built layouts, forms, data tables, and modals.",
-  },
-  {
-    icon: "🧩",
-    title: "Feature Modules",
-    desc: "Modular architecture — each feature registers its own DI container, router, and routes.",
-  },
-];
+function timeAgo(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) {
+    return 'just now';
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
-export default function LandingPage() {
-  const navigate = useNavigate();
+export default function HomePage() {
+  const [sort, setSort] = useState<'new' | 'top'>('new');
+
+  const { data: feedPosts, isLoading } = trpc.posts.feed.useQuery({ sort });
+
+  const { data: subscriptions } = trpc.subreddits.mySubscriptions.useQuery(
+    undefined,
+    { retry: false },
+  );
+
+  const isLoggedIn = subscriptions !== undefined;
+  const hasSubscriptions = (subscriptions?.length ?? 0) > 0;
+  const showPersonalizedNotice = isLoggedIn && !hasSubscriptions;
 
   return (
-    <Box minH="100vh" bg="#030712">
-      {/* Nav */}
-      <Flex
-        as="nav"
-        position="fixed"
-        top={0}
-        left={0}
-        right={0}
-        zIndex={50}
-        px={6}
-        py={3}
-        align="center"
-        justify="space-between"
-        bg="rgba(3, 7, 18, 0.8)"
-        backdropFilter="blur(12px)"
-        borderBottom="1px solid"
-        borderColor="whiteAlpha.100"
-      >
-        <Text fontSize="xl" fontWeight="bold" color="white" fontFamily="mono">
-          Cruz
-          <Text as="span" color="#818cf8">
-            Test
-          </Text>
-        </Text>
-        <HStack spacing={3}>
-          <Button
-            size="sm"
-            variant="ghost"
-            color="gray.400"
-            _hover={{ color: "white" }}
-            onClick={() => navigate("/auth/login")}
-          >
-            Sign in
-          </Button>
-          <Button
-            size="sm"
-            bg="#4F46E5"
-            color="white"
-            _hover={{ bg: "#4338CA" }}
-            onClick={() => navigate("/auth/register")}
-          >
-            Get Started
-          </Button>
-        </HStack>
-      </Flex>
+    <div className="max-w-6xl mx-auto p-4 md:p-8">
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Main feed */}
+        <div className="flex-1 min-w-0">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-slate-900">Home</h1>
+          </div>
 
-      {/* Hero */}
-      <Container
-        maxW="5xl"
-        pt={{ base: 32, md: 44 }}
-        pb={{ base: 16, md: 24 }}
-        textAlign="center"
-      >
-        <VStack spacing={6}>
-          <HStack
-            bg="whiteAlpha.100"
-            border="1px solid"
-            borderColor="whiteAlpha.200"
-            rounded="full"
-            px={4}
-            py={1}
-            fontSize="sm"
-            color="gray.400"
-          >
-            <Text>Built with CruzJS on Cloudflare</Text>
-          </HStack>
-
-          <Heading
-            as="h1"
-            fontSize={{ base: "4xl", md: "6xl", lg: "7xl" }}
-            fontWeight="800"
-            color="white"
-            lineHeight="1.1"
-            letterSpacing="-0.02em"
-          >
-            Your notes,{" "}
-            <Text
-              as="span"
-              bgGradient="linear(to-r, #818cf8, #6366f1, #a78bfa)"
-              bgClip="text"
+          {/* Sort tabs */}
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={() => setSort('new')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                sort === 'new'
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+              }`}
             >
-              everywhere
-            </Text>
-          </Heading>
-
-          <Text fontSize={{ base: "lg", md: "xl" }} color="gray.400" maxW="2xl">
-            A full-stack demo app built with CruzJS — featuring authentication,
-            organizations, and a notes feature, all running on Cloudflare's edge
-            network.
-          </Text>
-
-          <HStack spacing={4} pt={4}>
-            <Button
-              size="lg"
-              bg="#4F46E5"
-              color="white"
-              _hover={{ bg: "#4338CA" }}
-              onClick={() => navigate("/auth/register")}
+              New
+            </button>
+            <button
+              onClick={() => setSort('top')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                sort === 'top'
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+              }`}
             >
-              Start for Free
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              color="gray.300"
-              borderColor="whiteAlpha.300"
-              _hover={{ bg: "whiteAlpha.100" }}
-              onClick={() => navigate("/auth/login")}
-            >
-              Sign In
-            </Button>
-          </HStack>
+              Top
+            </button>
+          </div>
 
-          <Box pt={2}>
-            <Code
-              bg="whiteAlpha.100"
-              color="#818cf8"
-              px={4}
-              py={2}
-              rounded="lg"
-              fontSize="sm"
-              fontFamily="mono"
-            >
-              npx create-cruz-app my-app
-            </Code>
-          </Box>
-        </VStack>
-      </Container>
+          {/* Personalized feed notice */}
+          {showPersonalizedNotice && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-blue-800 text-sm">
+                Join some communities to personalize your feed!{' '}
+                <Link to="/subreddits" className="font-medium underline hover:text-blue-900">
+                  Browse communities
+                </Link>
+              </p>
+            </div>
+          )}
 
-      {/* Features */}
-      <Box id="features" py={{ base: 16, md: 24 }}>
-        <Container maxW="5xl">
-          <VStack spacing={4} mb={16} textAlign="center">
-            <Heading
-              as="h2"
-              fontSize={{ base: "3xl", md: "4xl" }}
-              color="white"
-              fontWeight="700"
-            >
-              Everything included
-            </Heading>
-            <Text fontSize="lg" color="gray.400" maxW="xl">
-              This demo showcases a complete CruzJS app — from auth to data to
-              deployment.
-            </Text>
-          </VStack>
+          {/* Not logged in banner */}
+          {!isLoggedIn && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4">
+              <p className="text-slate-700 text-sm">
+                <Link to="/auth/login" className="font-medium text-brand-600 hover:text-brand-700">
+                  Sign in
+                </Link>{' '}
+                to personalize your feed and join communities.
+              </p>
+            </div>
+          )}
 
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-            {features.map((f) => (
-              <Box
-                key={f.title}
-                p={6}
-                bg="whiteAlpha.50"
-                border="1px solid"
-                borderColor="whiteAlpha.100"
-                rounded="xl"
-                _hover={{ borderColor: "whiteAlpha.200", bg: "whiteAlpha.100" }}
-                transition="all 0.2s"
-              >
-                <Text fontSize="2xl" mb={3}>
-                  {f.icon}
-                </Text>
-                <Text fontWeight="600" color="white" mb={2}>
-                  {f.title}
-                </Text>
-                <Text fontSize="sm" color="gray.400" lineHeight="1.6">
-                  {f.desc}
-                </Text>
-              </Box>
-            ))}
-          </SimpleGrid>
-        </Container>
-      </Box>
+          {/* Posts list */}
+          {isLoading ? (
+            <div className="p-8 text-center text-slate-500">Loading posts...</div>
+          ) : !feedPosts || feedPosts.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+              <div className="text-center py-12 text-slate-500">
+                <p className="text-lg font-medium">No posts yet</p>
+                <p className="mt-2">
+                  Be the first to share something!{' '}
+                  <Link to="/subreddits" className="text-brand-600 hover:text-brand-700">
+                    Browse communities
+                  </Link>
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {feedPosts.map((post) => {
+                const authorDisplay = post.authorId.slice(0, 8) + '...';
+                const createdAt = new Date(post.createdAt);
 
-      {/* CTA */}
-      <Box py={{ base: 16, md: 24 }}>
-        <Container maxW="3xl" textAlign="center">
-          <VStack spacing={6}>
-            <Heading
-              as="h2"
-              fontSize={{ base: "3xl", md: "4xl" }}
-              color="white"
-              fontWeight="700"
-            >
-              Ready to try it?
-            </Heading>
-            <Text fontSize="lg" color="gray.400" maxW="md">
-              Create an account and start taking notes in under a minute.
-            </Text>
-            <Button
-              size="lg"
-              bg="#4F46E5"
-              color="white"
-              _hover={{ bg: "#4338CA" }}
-              onClick={() => navigate("/auth/register")}
-            >
-              Get Started Free
-            </Button>
-          </VStack>
-        </Container>
-      </Box>
+                return (
+                  <Link
+                    key={post.id}
+                    to={`/r/${post.subredditName}/comments/${post.id}`}
+                    className="block bg-white rounded-lg shadow-sm border border-slate-200 p-4 hover:border-slate-300 transition-colors"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="flex flex-col items-center text-sm text-slate-500 min-w-[40px]">
+                        <span className="font-semibold text-slate-900">{post.score}</span>
+                        <span className="text-xs">points</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-slate-500 mb-1">
+                          <Link
+                            to={`/r/${post.subredditName}`}
+                            className="font-medium text-slate-700 hover:text-brand-600"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            r/{post.subredditName}
+                          </Link>
+                        </div>
+                        <h3 className="text-lg font-medium text-slate-900 leading-snug">
+                          {post.title}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
+                          <span>u/{authorDisplay}</span>
+                          <span>&middot;</span>
+                          <span>{timeAgo(createdAt)}</span>
+                          <span>&middot;</span>
+                          <span>{post.commentCount} {post.commentCount === 1 ? 'comment' : 'comments'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-      {/* Footer */}
-      <Box borderTop="1px solid" borderColor="whiteAlpha.100" py={8}>
-        <Container maxW="5xl">
-          <Flex justify="space-between" align="center" flexWrap="wrap" gap={4}>
-            <Text color="gray.500" fontSize="sm">
-              Cruz Test — A CruzJS demo app
-            </Text>
-            <Text color="gray.600" fontSize="xs">
-              Built with CruzJS
-            </Text>
-          </Flex>
-        </Container>
-      </Box>
-    </Box>
+        {/* Sidebar */}
+        <div className="hidden md:block w-72 shrink-0">
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 space-y-3 sticky top-20">
+            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+              Quick Links
+            </h2>
+            <Link
+              to="/subreddits/create"
+              className="block w-full px-4 py-2 bg-brand-600 text-white text-center rounded-lg hover:bg-brand-700 transition-colors text-sm font-medium"
+            >
+              Create Community
+            </Link>
+            <Link
+              to="/subreddits"
+              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 text-center rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+            >
+              Browse Communities
+            </Link>
+
+            {isLoggedIn && hasSubscriptions && (
+              <div className="pt-3 border-t border-slate-200">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  My Communities
+                </h3>
+                <div className="space-y-1">
+                  {subscriptions?.map((sub) => (
+                    <Link
+                      key={sub.id}
+                      to={`/r/${sub.name}`}
+                      className="block px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 rounded transition-colors"
+                    >
+                      r/{sub.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
