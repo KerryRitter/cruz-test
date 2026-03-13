@@ -5,6 +5,7 @@ import { subredditsTrpc } from "@/features/subreddits/subreddits.trpc";
 import { postsTrpc } from "@/features/posts/posts.trpc";
 import { votesTrpc } from "@/features/votes/votes.trpc";
 import { commentsTrpc } from "@/features/comments/comments.trpc";
+import { karmaTrpc } from "@/features/karma/karma.trpc";
 
 const appRouter = router({
   ...registerCruzCoreTrpcRouters(),
@@ -13,6 +14,7 @@ const appRouter = router({
   posts: postsTrpc,
   votes: votesTrpc,
   comments: commentsTrpc,
+  karma: karmaTrpc,
 });
 
 export type AppRouter = typeof appRouter;

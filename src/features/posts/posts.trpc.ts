@@ -52,4 +52,12 @@ export const postsTrpc = router({
       const service = container.resolve(PostsService);
       return service.getFeed(userId, input.sort);
     }),
+
+  listByAuthor: publicProcedure
+    .input(z.object({ authorId: z.string() }))
+    .query(async ({ input }) => {
+      const container = await getAppContainer();
+      const service = container.resolve(PostsService);
+      return service.listByAuthor(input.authorId);
+    }),
 });

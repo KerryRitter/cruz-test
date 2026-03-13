@@ -29,5 +29,8 @@ export default createCruzRoutes({
       route(":name/submit", "features/posts/routes/posts.create.tsx"),
       route(":name/comments/:id", "features/posts/routes/posts.$id.tsx"),
     ]),
+    ...prefix("u", [
+      route(":userId", "features/karma/routes/karma.$userId.tsx"),
+    ]),
   ],
 }) satisfies RouteConfig;

@@ -29,6 +29,11 @@ export default function HomePage() {
     { retry: false },
   );
 
+  const { data: myKarma } = trpc.karma.getMyKarma.useQuery(
+    undefined,
+    { retry: false },
+  );
+
   const isLoggedIn = subscriptions !== undefined;
   const hasSubscriptions = (subscriptions?.length ?? 0) > 0;
   const showPersonalizedNotice = isLoggedIn && !hasSubscriptions;
@@ -137,7 +142,13 @@ export default function HomePage() {
                           {post.title}
                         </h3>
                         <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
-                          <span>u/{authorDisplay}</span>
+                          <Link
+                            to={`/u/${post.authorId}`}
+                            className="hover:text-brand-600"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            u/{authorDisplay}
+                          </Link>
                           <span>&middot;</span>
                           <span>{timeAgo(createdAt)}</span>
                           <span>&middot;</span>
@@ -170,6 +181,20 @@ export default function HomePage() {
             >
               Browse Communities
             </Link>
+
+            {isLoggedIn && myKarma && (
+              <div className="pt-3 border-t border-slate-200">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  Your Karma
+                </h3>
+                <div className="text-center">
+                  <span className="text-2xl font-bold text-brand-700">{myKarma.totalKarma}</span>
+                  <div className="text-xs text-slate-500 mt-1">
+                    {myKarma.postKarma} post &middot; {myKarma.commentKarma} comment
+                  </div>
+                </div>
+              </div>
+            )}
 
             {isLoggedIn && hasSubscriptions && (
               <div className="pt-3 border-t border-slate-200">

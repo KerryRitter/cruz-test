@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@cruzjs/core/di';
 import { DRIZZLE, type DrizzleDatabase } from '@cruzjs/core/shared/database/drizzle.service';
-import { eq, and, desc, inArray } from 'drizzle-orm';
+import { eq, and, desc, inArray, sql } from 'drizzle-orm';
 import { posts } from './posts.schema';
 import { subreddits, subredditMembers } from '@/features/subreddits/subreddits.schema';
 import type { CreatePostInput } from './posts.validation';
@@ -102,6 +102,29 @@ export class PostsService {
       .where(conditions)
       .orderBy(desc(orderColumn))
       .limit(100);
+
+    return results;
+  }
+
+  async listByAuthor(authorId: string): Promise<FeedPost[]> {
+    const results = await this.db
+      .select({
+        id: posts.id,
+        subredditId: posts.subredditId,
+        authorId: posts.authorId,
+        title: posts.title,
+        body: posts.body,
+        score: posts.score,
+        commentCount: posts.commentCount,
+        createdAt: posts.createdAt,
+        updatedAt: posts.updatedAt,
+        subredditName: subreddits.name,
+      })
+      .from(posts)
+      .innerJoin(subreddits, eq(posts.subredditId, subreddits.id))
+      .where(eq(posts.authorId, authorId))
+      .orderBy(desc(posts.createdAt))
+      .limit(20);
 
     return results;
   }

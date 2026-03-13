@@ -187,7 +187,13 @@ export default function SubredditPage() {
                       {post.title}
                     </h3>
                     <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
-                      <span>u/{authorDisplay}</span>
+                      <Link
+                        to={`/u/${post.authorId}`}
+                        className="hover:text-brand-600"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        u/{authorDisplay}
+                      </Link>
                       <span>&middot;</span>
                       <span>{timeAgo(createdAt)}</span>
                       <span>&middot;</span>
