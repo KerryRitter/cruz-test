@@ -4,6 +4,7 @@ import { registerCruzStartTrpcRouters } from "@cruzjs/start/trpc/routers";
 import { subredditsTrpc } from "@/features/subreddits/subreddits.trpc";
 import { postsTrpc } from "@/features/posts/posts.trpc";
 import { votesTrpc } from "@/features/votes/votes.trpc";
+import { commentsTrpc } from "@/features/comments/comments.trpc";
 
 const appRouter = router({
   ...registerCruzCoreTrpcRouters(),
@@ -11,6 +12,7 @@ const appRouter = router({
   subreddits: subredditsTrpc,
   posts: postsTrpc,
   votes: votesTrpc,
+  comments: commentsTrpc,
 });
 
 export type AppRouter = typeof appRouter;
