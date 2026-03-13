@@ -7,10 +7,10 @@ import {
 } from "@react-router/dev/routes";
 import { createCruzRoutes } from "@cruzjs/core/routing/create-routes";
 import { registerCruzStartRoutes } from "@cruzjs/start/routing";
-import { SubredditsModule } from "./features/subreddits/subreddits.module";
-import { PostsModule } from "./features/posts/posts.module";
-import { ModerationModule } from "./features/moderation/moderation.module";
-import { KarmaModule } from "./features/karma/karma.module";
+import { subredditsRoutes } from "./features/subreddits/subreddits.routes";
+import { postsRoutes } from "./features/posts/posts.routes";
+import { moderationRoutes } from "./features/moderation/moderation.routes";
+import { karmaRoutes } from "./features/karma/karma.routes";
 
 export default createCruzRoutes({
   route,
@@ -21,7 +21,7 @@ export default createCruzRoutes({
   framework: {
     registrars: [registerCruzStartRoutes],
   },
-  modules: [SubredditsModule, PostsModule, ModerationModule, KarmaModule],
+  featureRoutes: [subredditsRoutes, postsRoutes, moderationRoutes, karmaRoutes],
   routes: [
     index("routes/index.tsx"),
   ],

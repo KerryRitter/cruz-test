@@ -140,7 +140,7 @@ export class PostsService {
       })
       .from(posts)
       .innerJoin(subreddits, eq(posts.subredditId, subreddits.id))
-      .where(eq(posts.authorId, authorId))
+      .where(and(eq(posts.authorId, authorId), eq(posts.isRemoved, false)))
       .orderBy(desc(posts.createdAt))
       .limit(20);
 
