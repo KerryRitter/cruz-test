@@ -4,14 +4,14 @@ import { withLoaderMiddleware } from '@cruzjs/core/routing/middleware';
 import { SubredditsService } from '@/features/subreddits/subreddits.service';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import '@/setup.server';
-
-export const loader = async (args: LoaderFunctionArgs) =>
-  withLoaderMiddleware([args], async ({ container }) => {
+export const loader = async (args: LoaderFunctionArgs) => {
+  await import('@/setup.server');
+  return withLoaderMiddleware([args], async ({ container }) => {
     const service = container.resolve(SubredditsService);
     const subreddits = await service.list();
     return { subreddits };
   });
+};
 
 export default function SubredditsIndexPage() {
   const { subreddits: initialSubreddits } = useLoaderData<typeof loader>();

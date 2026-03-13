@@ -6,10 +6,9 @@ import { SubredditsService } from '@/features/subreddits/subreddits.service';
 import { PostsService } from '@/features/posts/posts.service';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import '@/setup.server';
-
-export const loader = async (args: LoaderFunctionArgs) =>
-  withLoaderMiddleware([args], async ({ params, container }) => {
+export const loader = async (args: LoaderFunctionArgs) => {
+  await import('@/setup.server');
+  return withLoaderMiddleware([args], async ({ params, container }) => {
     const subredditsService = container.resolve(SubredditsService);
     const postsService = container.resolve(PostsService);
 
@@ -21,6 +20,7 @@ export const loader = async (args: LoaderFunctionArgs) =>
     const posts = await postsService.listBySubreddit(subreddit.id, 'new');
     return { subreddit, posts };
   });
+};
 
 function timeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);

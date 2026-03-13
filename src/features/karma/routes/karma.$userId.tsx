@@ -58,10 +58,10 @@ export default function UserProfilePage() {
             <div className="text-sm text-slate-500 mt-1">Comment Karma</div>
           </div>
           <div className="bg-brand-50 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-brand-700">
+            <div className="text-2xl font-bold text-indigo-700">
               {karma?.totalKarma ?? 0}
             </div>
-            <div className="text-sm text-brand-600 mt-1">Total Karma</div>
+            <div className="text-sm text-indigo-600 mt-1">Total Karma</div>
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@ export default function UserProfilePage() {
                     <div className="text-xs text-slate-500 mb-1">
                       <Link
                         to={`/r/${post.subredditName}`}
-                        className="font-medium text-slate-700 hover:text-brand-600"
+                        className="font-medium text-slate-700 hover:text-indigo-600"
                         onClick={(e) => e.stopPropagation()}
                       >
                         r/{post.subredditName}

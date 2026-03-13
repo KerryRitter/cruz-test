@@ -6,17 +6,16 @@ import { getSession } from '@cruzjs/core/shared/middleware/session.middleware';
 import { PostsService } from '@/features/posts/posts.service';
 import type { LoaderFunctionArgs } from 'react-router';
 
-// Ensure DI providers are registered before loader runs
-import '@/setup.server';
-
-export const loader = async (args: LoaderFunctionArgs) =>
-  withLoaderMiddleware([args], async ({ request, container }) => {
+export const loader = async (args: LoaderFunctionArgs) => {
+  await import('@/setup.server');
+  return withLoaderMiddleware([args], async ({ request, container }) => {
     const session = await getSession(request, container);
     const userId = session?.user.id ?? null;
     const postsService = container.resolve(PostsService);
     const posts = await postsService.getFeed(userId, 'new');
     return { posts };
   });
+};
 
 function timeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);

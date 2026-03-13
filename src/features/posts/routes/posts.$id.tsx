@@ -1,6 +1,26 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useLoaderData } from 'react-router';
 import { trpc } from '@/trpc/client';
+import { withLoaderMiddleware } from '@cruzjs/core/routing/middleware';
+import { PostsService } from '@/features/posts/posts.service';
+import { CommentsService } from '@/features/comments/comments.service';
+import type { LoaderFunctionArgs } from 'react-router';
+
+export const loader = async (args: LoaderFunctionArgs) => {
+  await import('@/setup.server');
+  return withLoaderMiddleware([args], async ({ params, container }) => {
+    const postsService = container.resolve(PostsService);
+    const commentsService = container.resolve(CommentsService);
+
+    const post = await postsService.getById(params.id!);
+    if (!post) {
+      throw new Response('Not Found', { status: 404 });
+    }
+
+    const comments = await commentsService.listByPost(params.id!);
+    return { post, comments };
+  });
+};
 
 type SerializedComment = {
   id: string;
@@ -10,8 +30,8 @@ type SerializedComment = {
   body: string;
   score: number;
   depth: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 };
 
 function timeAgo(date: Date): string {
@@ -134,14 +154,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
               value={replyBody}
               onChange={(e) => setReplyBody(e.target.value)}
               placeholder="Write a reply..."
-              className="w-full border border-slate-300 rounded-md p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              className="w-full border border-slate-300 rounded-md p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               rows={3}
             />
             <div className="flex gap-2 mt-2">
               <button
                 onClick={handleSubmitReply}
                 disabled={!replyBody.trim() || isReplying}
-                className="px-3 py-1 bg-brand-600 text-white text-sm rounded-md hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isReplying ? 'Replying...' : 'Reply'}
               </button>
@@ -220,11 +240,13 @@ const CommentTree: React.FC<CommentTreeProps> = ({
 export default function PostDetailPage() {
   const { name, id } = useParams<{ name: string; id: string }>();
   const [commentBody, setCommentBody] = useState('');
+  const { post: initialPost, comments: initialComments } = useLoaderData<typeof loader>();
 
-  const { data: post, isLoading, error, refetch: refetchPost } = trpc.posts.getById.useQuery(
+  const { data: queryPost, refetch: refetchPost } = trpc.posts.getById.useQuery(
     { id: id! },
     { enabled: !!id },
   );
+  const post = queryPost ?? initialPost;
 
   const { data: userVotes } = trpc.votes.getUserVotesForPosts.useQuery(
     { postIds: id ? [id] : [] },
@@ -235,6 +257,7 @@ export default function PostDetailPage() {
     { postId: id! },
     { enabled: !!id },
   );
+  const comments = commentsData ?? initialComments;
 
   const commentIds = commentsData?.map((c) => c.id) ?? [];
 
@@ -293,18 +316,11 @@ export default function PostDetailPage() {
     createComment.mutate({ postId: id, body, parentCommentId });
   };
 
-  if (isLoading) {
-    return <div className="p-8">Loading...</div>;
-  }
-
-  if (error || !post) {
+  if (!post) {
     return (
       <div className="max-w-4xl mx-auto p-8 text-center">
         <h2 className="text-xl font-semibold text-slate-900">Post not found</h2>
-        <Link
-          to={`/r/${name}`}
-          className="text-brand-600 hover:text-brand-700 mt-4 inline-block"
-        >
+        <Link to={`/r/${name}`} className="text-indigo-600 hover:text-indigo-700 mt-4 inline-block">
           Back to r/{name}
         </Link>
       </div>
@@ -318,7 +334,7 @@ export default function PostDetailPage() {
     <div className="max-w-4xl mx-auto p-8">
       <Link
         to={`/r/${name}`}
-        className="text-brand-600 hover:text-brand-700 text-sm mb-4 inline-block"
+        className="text-indigo-600 hover:text-indigo-700 text-sm mb-4 inline-block"
       >
         &larr; Back to r/{name}
       </Link>
@@ -398,14 +414,14 @@ export default function PostDetailPage() {
             value={commentBody}
             onChange={(e) => setCommentBody(e.target.value)}
             placeholder="Write a comment..."
-            className="w-full border border-slate-300 rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            className="w-full border border-slate-300 rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             rows={4}
           />
           <div className="flex justify-end mt-2">
             <button
               onClick={handleCreateComment}
               disabled={!commentBody.trim() || createComment.isPending}
-              className="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-md hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createComment.isPending ? 'Posting...' : 'Comment'}
             </button>
@@ -416,9 +432,9 @@ export default function PostDetailPage() {
         </div>
 
         {/* Comment tree */}
-        {commentsData && commentsData.length > 0 ? (
+        {comments && comments.length > 0 ? (
           <CommentTree
-            comments={commentsData}
+            comments={comments}
             parentId={null}
             depth={0}
             userVotes={commentVotesData ?? {}}

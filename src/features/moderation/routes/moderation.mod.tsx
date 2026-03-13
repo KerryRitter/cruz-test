@@ -80,7 +80,7 @@ export default function ModerationDashboardPage() {
           <p className="text-slate-600 mt-2">You must be a moderator of r/{name} to access this page.</p>
           <Link
             to={`/r/${name}`}
-            className="text-brand-600 hover:text-brand-700 mt-4 inline-block"
+            className="text-indigo-600 hover:text-indigo-700 mt-4 inline-block"
           >
             Back to r/{name}
           </Link>
@@ -125,7 +125,7 @@ export default function ModerationDashboardPage() {
           onClick={() => setActiveTab('members')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'members'
-              ? 'bg-brand-600 text-white'
+              ? 'bg-indigo-600 text-white'
               : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
           }`}
         >
@@ -135,7 +135,7 @@ export default function ModerationDashboardPage() {
           onClick={() => setActiveTab('bans')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'bans'
-              ? 'bg-brand-600 text-white'
+              ? 'bg-indigo-600 text-white'
               : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
           }`}
         >
@@ -204,7 +204,7 @@ export default function ModerationDashboardPage() {
                   value={banUserId}
                   onChange={(e) => setBanUserId(e.target.value)}
                   placeholder="Enter user ID"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
               <div>
@@ -217,7 +217,7 @@ export default function ModerationDashboardPage() {
                   value={banReason}
                   onChange={(e) => setBanReason(e.target.value)}
                   placeholder="Reason for ban"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
               {banMutation.error && (

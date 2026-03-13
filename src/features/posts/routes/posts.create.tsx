@@ -44,7 +44,7 @@ export default function CreatePostPage() {
     return (
       <div className="max-w-xl mx-auto p-8 text-center">
         <p className="text-slate-600">Subreddit not found.</p>
-        <Link to="/subreddits" className="text-brand-600 hover:text-brand-700 mt-2 inline-block">
+        <Link to="/subreddits" className="text-indigo-600 hover:text-indigo-700 mt-2 inline-block">
           Browse communities
         </Link>
       </div>
@@ -77,7 +77,7 @@ export default function CreatePostPage() {
             placeholder="An interesting title"
             maxLength={300}
             required
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
           <p className="text-slate-500 text-xs mt-1">{title.length}/300</p>
         </div>
@@ -93,7 +93,7 @@ export default function CreatePostPage() {
             placeholder="Share your thoughts..."
             maxLength={40000}
             rows={8}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
           />
           <p className="text-slate-500 text-xs mt-1">{body.length}/40000</p>
         </div>
@@ -102,7 +102,7 @@ export default function CreatePostPage() {
           <button
             type="submit"
             disabled={createMutation.isPending}
-            className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50"
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
           >
             {createMutation.isPending ? 'Posting...' : 'Post'}
           </button>

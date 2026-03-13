@@ -55,7 +55,7 @@ export default function CreateSubredditPage() {
               minLength={3}
               maxLength={21}
               required
-              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
             />
           </div>
           <p className="text-slate-500 text-xs mt-1">
@@ -75,7 +75,7 @@ export default function CreateSubredditPage() {
             placeholder="Technology"
             maxLength={100}
             required
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
         </div>
 
@@ -90,7 +90,7 @@ export default function CreateSubredditPage() {
             placeholder="What is this community about?"
             maxLength={500}
             rows={3}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
           />
           <p className="text-slate-500 text-xs mt-1">{description.length}/500</p>
         </div>
@@ -99,7 +99,7 @@ export default function CreateSubredditPage() {
           <button
             type="submit"
             disabled={createMutation.isPending}
-            className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50"
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
           >
             {createMutation.isPending ? 'Creating...' : 'Create Community'}
           </button>
