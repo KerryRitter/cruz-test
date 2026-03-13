@@ -2,6 +2,7 @@ import { CruzProviders } from '@cruzjs/core/framework/components';
 import { trpc, createTRPCClient, createQueryClient } from '@/trpc/client';
 import { appConfig } from '@/config/app.config';
 import { theme } from '@/theme';
+import { AppLayout } from '@cruzjs/start/layout';
 
 import {
   Links,
@@ -24,7 +25,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
         <title>{appConfig.name}</title>
       </head>
-      <body className="min-h-screen bg-white text-gray-900">
+      <body className="min-h-screen bg-slate-50 text-gray-900">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -41,7 +42,9 @@ export default function App() {
       createQueryClient={createQueryClient}
       theme={theme}
     >
-      <Outlet />
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
     </CruzProviders>
   );
 }

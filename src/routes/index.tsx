@@ -19,6 +19,35 @@ function timeAgo(date: Date): string {
   return `${days}d ago`;
 }
 
+function PostCardSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 animate-pulse">
+      <div className="flex items-start gap-4">
+        <div className="flex flex-col items-center min-w-[40px] gap-1">
+          <div className="h-5 w-6 bg-slate-200 rounded" />
+          <div className="h-3 w-8 bg-slate-200 rounded" />
+        </div>
+        <div className="flex-1 space-y-2">
+          <div className="h-3 w-24 bg-slate-200 rounded" />
+          <div className="h-5 w-3/4 bg-slate-200 rounded" />
+          <div className="h-3 w-1/2 bg-slate-200 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeedSkeleton() {
+  return (
+    <div className="space-y-3">
+      <PostCardSkeleton />
+      <PostCardSkeleton />
+      <PostCardSkeleton />
+      <PostCardSkeleton />
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [sort, setSort] = useState<'new' | 'top'>('new');
 
@@ -54,7 +83,7 @@ export default function HomePage() {
               onClick={() => setSort('new')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 sort === 'new'
-                  ? 'bg-brand-600 text-white'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -64,7 +93,7 @@ export default function HomePage() {
               onClick={() => setSort('top')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 sort === 'top'
-                  ? 'bg-brand-600 text-white'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -86,26 +115,40 @@ export default function HomePage() {
 
           {/* Not logged in banner */}
           {!isLoggedIn && (
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4">
-              <p className="text-slate-700 text-sm">
-                <Link to="/auth/login" className="font-medium text-brand-600 hover:text-brand-700">
-                  Sign in
-                </Link>{' '}
-                to personalize your feed and join communities.
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-4">
+              <p className="text-indigo-900 text-sm font-medium mb-2">
+                Welcome to the community!
               </p>
+              <p className="text-indigo-800 text-sm mb-3">
+                Sign in to join communities, create posts, and vote.
+              </p>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/auth/login"
+                  className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/auth/register"
+                  className="inline-block px-4 py-2 border border-indigo-300 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-medium"
+                >
+                  Get Started
+                </Link>
+              </div>
             </div>
           )}
 
           {/* Posts list */}
           {isLoading ? (
-            <div className="p-8 text-center text-slate-500">Loading posts...</div>
+            <FeedSkeleton />
           ) : !feedPosts || feedPosts.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
               <div className="text-center py-12 text-slate-500">
                 <p className="text-lg font-medium">No posts yet</p>
                 <p className="mt-2">
                   Be the first to share something!{' '}
-                  <Link to="/subreddits" className="text-brand-600 hover:text-brand-700">
+                  <Link to="/subreddits" className="text-indigo-600 hover:text-indigo-700 font-medium">
                     Browse communities
                   </Link>
                 </p>
@@ -121,7 +164,7 @@ export default function HomePage() {
                   <Link
                     key={post.id}
                     to={`/r/${post.subredditName}/comments/${post.id}`}
-                    className="block bg-white rounded-lg shadow-sm border border-slate-200 p-4 hover:border-slate-300 transition-colors"
+                    className="block bg-white rounded-lg shadow-sm border border-slate-200 p-4 hover:border-indigo-300 hover:shadow-md transition-all"
                   >
                     <div className="flex items-start gap-4">
                       <div className="flex flex-col items-center text-sm text-slate-500 min-w-[40px]">
@@ -132,7 +175,7 @@ export default function HomePage() {
                         <div className="text-xs text-slate-500 mb-1">
                           <Link
                             to={`/r/${post.subredditName}`}
-                            className="font-medium text-slate-700 hover:text-brand-600"
+                            className="font-medium text-indigo-600 hover:text-indigo-700"
                             onClick={(e) => e.stopPropagation()}
                           >
                             r/{post.subredditName}
@@ -144,7 +187,7 @@ export default function HomePage() {
                         <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
                           <Link
                             to={`/u/${post.authorId}`}
-                            className="hover:text-brand-600"
+                            className="hover:text-indigo-600"
                             onClick={(e) => e.stopPropagation()}
                           >
                             u/{authorDisplay}
@@ -165,13 +208,53 @@ export default function HomePage() {
 
         {/* Sidebar */}
         <div className="hidden md:block w-72 shrink-0">
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 space-y-3 sticky top-20">
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 space-y-3 sticky top-14">
             <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
               Quick Links
             </h2>
+
+            {/* Sign-in prompt for logged-out users */}
+            {!isLoggedIn && (
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <p className="text-sm text-slate-700 mb-2">Join the conversation</p>
+                <div className="space-y-2">
+                  <Link
+                    to="/auth/login"
+                    className="block w-full px-4 py-2 bg-indigo-600 text-white text-center rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/auth/register"
+                    className="block w-full px-4 py-2 border border-indigo-300 text-indigo-700 text-center rounded-lg hover:bg-indigo-50 transition-colors text-sm font-medium"
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Create Post button for logged-in users */}
+            {isLoggedIn && hasSubscriptions && (
+              <Link
+                to={`/r/${subscriptions![0].name}/submit`}
+                className="block w-full px-4 py-2 bg-indigo-600 text-white text-center rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+              >
+                Create Post
+              </Link>
+            )}
+
+            {isLoggedIn && !hasSubscriptions && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-amber-800 text-xs">
+                  Join a community to start posting!
+                </p>
+              </div>
+            )}
+
             <Link
               to="/subreddits/create"
-              className="block w-full px-4 py-2 bg-brand-600 text-white text-center rounded-lg hover:bg-brand-700 transition-colors text-sm font-medium"
+              className="block w-full px-4 py-2 bg-indigo-600 text-white text-center rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
             >
               Create Community
             </Link>
@@ -188,7 +271,7 @@ export default function HomePage() {
                   Your Karma
                 </h3>
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-brand-700">{myKarma.totalKarma}</span>
+                  <span className="text-2xl font-bold text-indigo-700">{myKarma.totalKarma}</span>
                   <div className="text-xs text-slate-500 mt-1">
                     {myKarma.postKarma} post &middot; {myKarma.commentKarma} comment
                   </div>

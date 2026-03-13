@@ -19,9 +19,39 @@ function timeAgo(date: Date): string {
   return `${days}d ago`;
 }
 
+function PostCardSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 animate-pulse">
+      <div className="flex items-start gap-4">
+        <div className="flex flex-col items-center min-w-[40px] gap-1">
+          <div className="h-5 w-6 bg-slate-200 rounded" />
+          <div className="h-3 w-8 bg-slate-200 rounded" />
+        </div>
+        <div className="flex-1 space-y-2">
+          <div className="h-5 w-3/4 bg-slate-200 rounded" />
+          <div className="h-3 w-1/2 bg-slate-200 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubredditHeaderSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6 animate-pulse">
+      <div className="space-y-3">
+        <div className="h-7 w-48 bg-slate-200 rounded" />
+        <div className="h-5 w-64 bg-slate-200 rounded" />
+        <div className="h-4 w-32 bg-slate-200 rounded" />
+      </div>
+    </div>
+  );
+}
+
 export default function SubredditPage() {
   const { name } = useParams<{ name: string }>();
   const [sort, setSort] = useState<'new' | 'top'>('new');
+  const [showJoinMessage, setShowJoinMessage] = useState(false);
 
   const { data: subreddit, isLoading, error } = trpc.subreddits.getByName.useQuery(
     { name: name! },
@@ -61,22 +91,48 @@ export default function SubredditPage() {
   const isModerator = userRole === 'moderator';
   const isLoggedIn = !!membership;
 
+  const handleNewPostClick = () => {
+    if (!isLoggedIn) {
+      // Will navigate to login
+      return;
+    }
+    if (!isMember) {
+      setShowJoinMessage(true);
+      setTimeout(() => setShowJoinMessage(false), 3000);
+    }
+  };
+
   if (isLoading) {
-    return <div className="p-8">Loading...</div>;
+    return (
+      <div className="max-w-4xl mx-auto p-8">
+        <SubredditHeaderSkeleton />
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-9 w-16 bg-slate-200 rounded-lg animate-pulse" />
+          <div className="h-9 w-16 bg-slate-200 rounded-lg animate-pulse" />
+        </div>
+        <div className="space-y-3">
+          <PostCardSkeleton />
+          <PostCardSkeleton />
+          <PostCardSkeleton />
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
       <div className="max-w-4xl mx-auto p-8">
-        <div className="text-center py-12">
-          <h2 className="text-xl font-semibold text-slate-900">Community not found</h2>
-          <p className="text-slate-600 mt-2">r/{name} does not exist.</p>
-          <Link
-            to="/subreddits"
-            className="text-brand-600 hover:text-brand-700 mt-4 inline-block"
-          >
-            Browse communities
-          </Link>
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+          <div className="text-center py-12">
+            <h2 className="text-xl font-semibold text-slate-900">Community not found</h2>
+            <p className="text-slate-600 mt-2">r/{name} does not exist.</p>
+            <Link
+              to="/subreddits"
+              className="text-indigo-600 hover:text-indigo-700 mt-4 inline-block font-medium"
+            >
+              Browse communities
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -102,7 +158,7 @@ export default function SubredditPage() {
                 {subreddit.memberCount} {subreddit.memberCount === 1 ? 'member' : 'members'}
               </span>
               {userRole && (
-                <span className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded text-xs font-medium capitalize">
+                <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium capitalize">
                   {userRole}
                 </span>
               )}
@@ -112,15 +168,31 @@ export default function SubredditPage() {
             {isModerator && (
               <Link
                 to={`/r/${name}/mod`}
-                className="px-4 py-2 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-200 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg hover:bg-amber-200 transition-colors text-sm font-medium"
               >
                 Mod Tools
               </Link>
             )}
-            {isLoggedIn && isMember && (
+            {/* New Post button - always visible */}
+            {isLoggedIn && isMember ? (
               <Link
                 to={`/r/${name}/submit`}
-                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+              >
+                New Post
+              </Link>
+            ) : isLoggedIn && !isMember ? (
+              <button
+                onClick={handleNewPostClick}
+                className="px-4 py-2 bg-indigo-400 text-white rounded-lg cursor-not-allowed font-medium"
+                title="Join this community to post"
+              >
+                New Post
+              </button>
+            ) : (
+              <Link
+                to="/auth/login"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
               >
                 New Post
               </Link>
@@ -129,7 +201,7 @@ export default function SubredditPage() {
               <button
                 onClick={() => leaveMutation.mutate({ subredditId: subreddit.id })}
                 disabled={leaveMutation.isPending}
-                className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border-2 border-indigo-200 text-indigo-700 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-colors font-medium"
               >
                 Leave
               </button>
@@ -137,13 +209,43 @@ export default function SubredditPage() {
               <button
                 onClick={() => joinMutation.mutate({ subredditId: subreddit.id })}
                 disabled={joinMutation.isPending}
-                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
               >
                 Join
               </button>
             )}
           </div>
         </div>
+
+        {/* Join message tooltip */}
+        {showJoinMessage && (
+          <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-amber-800 text-sm">
+              Join this community first to create a post.{' '}
+              <button
+                onClick={() => joinMutation.mutate({ subredditId: subreddit.id })}
+                className="font-medium underline hover:text-amber-900"
+              >
+                Join now
+              </button>
+            </p>
+          </div>
+        )}
+
+        {/* Not logged in message */}
+        {!isLoggedIn && (
+          <div className="mt-4 bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+            <p className="text-indigo-800 text-sm">
+              <Link to="/auth/login" className="font-medium text-indigo-700 hover:text-indigo-800 underline">
+                Sign in
+              </Link>{' '}
+              to join this community, create posts, and vote.{' '}
+              <Link to="/auth/register" className="font-medium text-indigo-700 hover:text-indigo-800 underline">
+                Create an account
+              </Link>
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Sort tabs */}
@@ -152,7 +254,7 @@ export default function SubredditPage() {
           onClick={() => setSort('new')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             sort === 'new'
-              ? 'bg-brand-600 text-white'
+              ? 'bg-indigo-600 text-white shadow-sm'
               : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
           }`}
         >
@@ -162,7 +264,7 @@ export default function SubredditPage() {
           onClick={() => setSort('top')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             sort === 'top'
-              ? 'bg-brand-600 text-white'
+              ? 'bg-indigo-600 text-white shadow-sm'
               : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
           }`}
         >
@@ -172,12 +274,24 @@ export default function SubredditPage() {
 
       {/* Posts list */}
       {postsLoading ? (
-        <div className="p-8 text-center text-slate-500">Loading posts...</div>
+        <div className="space-y-3">
+          <PostCardSkeleton />
+          <PostCardSkeleton />
+          <PostCardSkeleton />
+        </div>
       ) : !postsList || postsList.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
           <div className="text-center py-12 text-slate-500">
             <p className="text-lg font-medium">No posts yet</p>
             <p className="mt-2">Be the first to share something in r/{subreddit.name}!</p>
+            {isLoggedIn && isMember && (
+              <Link
+                to={`/r/${name}/submit`}
+                className="inline-block mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+              >
+                Create the first post
+              </Link>
+            )}
           </div>
         </div>
       ) : (
@@ -190,7 +304,7 @@ export default function SubredditPage() {
               <Link
                 key={post.id}
                 to={`/r/${name}/comments/${post.id}`}
-                className="block bg-white rounded-lg shadow-sm border border-slate-200 p-4 hover:border-slate-300 transition-colors"
+                className="block bg-white rounded-lg shadow-sm border border-slate-200 p-4 hover:border-indigo-300 hover:shadow-md transition-all"
               >
                 <div className="flex items-start gap-4">
                   <div className="flex flex-col items-center text-sm text-slate-500 min-w-[40px]">
@@ -204,7 +318,7 @@ export default function SubredditPage() {
                     <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
                       <Link
                         to={`/u/${post.authorId}`}
-                        className="hover:text-brand-600"
+                        className="hover:text-indigo-600"
                         onClick={(e) => e.stopPropagation()}
                       >
                         u/{authorDisplay}
