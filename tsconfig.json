@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": false,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@cruzjs/core": ["./node_modules/@cruzjs/core/src/index.ts"],
+      "@cruzjs/core/*": ["./node_modules/@cruzjs/core/src/*"],
+      "@cruzjs/start": ["./node_modules/@cruzjs/start/src/index.ts"],
+      "@cruzjs/start/*": ["./node_modules/@cruzjs/start/src/*"],
+      "@cruzjs/pro": ["./node_modules/@cruzjs/pro/src/index.ts"],
+      "@cruzjs/pro/*": ["./node_modules/@cruzjs/pro/src/*"],
+      "@cruzjs/ui": ["./node_modules/@cruzjs/ui/src/index.ts"],
+      "@cruzjs/ui/*": ["./node_modules/@cruzjs/ui/src/*"]
+    },
+    "outDir": "./dist",
+    "types": ["node", "vite/client", "@cloudflare/workers-types"]
+  },
+  "include": ["./src"],
+  "exclude": [".react-router", "node_modules", "dist"]
+}

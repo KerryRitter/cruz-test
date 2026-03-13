@@ -1,0 +1,27 @@
+name = "cruz-test-local"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist/client"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cruz-test-local-db"
+database_id = "local-dev-db"
+migrations_dir = "./src/database/migrations"
+
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "local-dev-cache-kv"
+
+[ai]
+binding = "AI"
+
+[vars]
+APP_NAME = "Cruz Test"
+APP_URL = "http://localhost:5001"
+NODE_ENV = "development"
+EMAIL_PROVIDER = "mailchannels"
+SESSION_SECRET = "local-dev-session-secret-change-in-prod"
+CSRF_SECRET = "local-dev-csrf-secret-change-in-prod"
+JWT_SECRET = "local-dev-jwt-secret-change-in-prod"
+JWT_REFRESH_SECRET = "local-dev-jwt-refresh-secret-change-in-prod"

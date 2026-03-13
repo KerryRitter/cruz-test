@@ -1,0 +1,23 @@
+name = "cruz-test"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist/client"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cruz-test-production-db"
+database_id = "d588ef57-2339-4cb5-8f4b-09da3719869c"
+migrations_dir = "./src/database/migrations"
+
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "8551e10d628c45249f77e420a3ab6999"
+
+[ai]
+binding = "AI"
+
+[vars]
+APP_NAME = "Cruz Test"
+APP_URL = "https://cruz-test.pages.dev"
+NODE_ENV = "production"
+EMAIL_PROVIDER = "mailchannels"
