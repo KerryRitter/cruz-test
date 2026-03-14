@@ -1,6 +1,22 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useLoaderData } from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 import { trpc } from '@/trpc/client';
+
+export const loader = async (args: LoaderFunctionArgs) => {
+  const [{ withLoaderMiddleware }, { SubredditsService }] = await Promise.all([
+    import('@cruzjs/core/routing/middleware'),
+    import('@/features/subreddits/subreddits.service'),
+  ]);
+  return withLoaderMiddleware([args], async ({ params, container }) => {
+    const service = container.resolve(SubredditsService);
+    const subreddit = await service.getByName(params.name!);
+    if (!subreddit) {
+      throw new Response('Not Found', { status: 404 });
+    }
+    return { subreddit };
+  });
+};
 
 function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString('en-US', {
@@ -12,13 +28,14 @@ function formatDate(date: Date | string): string {
 
 export default function ModerationDashboardPage() {
   const { name } = useParams<{ name: string }>();
+  const loaderData = useLoaderData<typeof loader>();
   const [activeTab, setActiveTab] = useState<'members' | 'bans'>('members');
   const [banUserId, setBanUserId] = useState('');
   const [banReason, setBanReason] = useState('');
 
-  const { data: subreddit, isLoading: subredditLoading } = trpc.subreddits.getByName.useQuery(
+  const { data: subreddit } = trpc.subreddits.getByName.useQuery(
     { name: name! },
-    { enabled: !!name },
+    { enabled: !!name, initialData: loaderData?.subreddit },
   );
 
   const { data: subscriptions } = trpc.subreddits.mySubscriptions.useQuery(
@@ -59,10 +76,6 @@ export default function ModerationDashboardPage() {
       refetchMembers();
     },
   });
-
-  if (subredditLoading) {
-    return <div className="p-8">Loading...</div>;
-  }
 
   if (!subreddit) {
     return (

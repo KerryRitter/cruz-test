@@ -1,5 +1,23 @@
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useLoaderData } from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 import { trpc } from '@/trpc/client';
+
+export const loader = async (args: LoaderFunctionArgs) => {
+  const [{ withLoaderMiddleware }, { KarmaService }, { PostsService }] = await Promise.all([
+    import('@cruzjs/core/routing/middleware'),
+    import('@/features/karma/karma.service'),
+    import('@/features/posts/posts.service'),
+  ]);
+  return withLoaderMiddleware([args], async ({ params, container }) => {
+    const karmaService = container.resolve(KarmaService);
+    const postsService = container.resolve(PostsService);
+    const [karma, userPosts] = await Promise.all([
+      karmaService.getKarma(params.userId!),
+      postsService.listByAuthor(params.userId!),
+    ]);
+    return { karma, userPosts };
+  });
+};
 
 function timeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -20,22 +38,19 @@ function timeAgo(date: Date): string {
 
 export default function UserProfilePage() {
   const { userId } = useParams<{ userId: string }>();
+  const loaderData = useLoaderData<typeof loader>();
 
-  const { data: karma, isLoading: karmaLoading } = trpc.karma.getUserKarma.useQuery(
+  const { data: karma } = trpc.karma.getUserKarma.useQuery(
     { userId: userId! },
-    { enabled: !!userId },
+    { enabled: !!userId, initialData: loaderData?.karma },
   );
 
   const { data: userPosts, isLoading: postsLoading } = trpc.posts.listByAuthor.useQuery(
     { authorId: userId! },
-    { enabled: !!userId },
+    { enabled: !!userId, initialData: loaderData?.userPosts },
   );
 
   const userDisplay = userId ? userId.slice(0, 8) + '...' : '';
-
-  if (karmaLoading) {
-    return <div className="p-8 text-center text-slate-500">Loading profile...</div>;
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">

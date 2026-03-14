@@ -1,5 +1,6 @@
 import { cloudflareDevProxy } from '@react-router/dev/vite/cloudflare';
 import { reactRouter } from '@react-router/dev/vite';
+import { serverOnlyPlugin } from '@cruzjs/core/vite';
 import tailwindcss from '@tailwindcss/vite';
 import babel from 'vite-plugin-babel';
 import * as path from 'path';
@@ -46,6 +47,7 @@ export default defineConfig(({ command }) => {
       },
     },
     plugins: [
+      serverOnlyPlugin(),
       // Run Babel before Oxc so legacy TypeScript decorators (@Injectable, @Inject)
       // are transformed to plain JS before Rolldown sees them.
       babel({

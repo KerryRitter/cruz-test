@@ -1,17 +1,34 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
+import { useParams, useNavigate, Link, useLoaderData } from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 import { trpc } from '@/trpc/client';
+
+export const loader = async (args: LoaderFunctionArgs) => {
+  const [{ withLoaderMiddleware }, { SubredditsService }] = await Promise.all([
+    import('@cruzjs/core/routing/middleware'),
+    import('@/features/subreddits/subreddits.service'),
+  ]);
+  return withLoaderMiddleware([args], async ({ params, container }) => {
+    const service = container.resolve(SubredditsService);
+    const subreddit = await service.getByName(params.name!);
+    if (!subreddit) {
+      throw new Response('Not Found', { status: 404 });
+    }
+    return { subreddit };
+  });
+};
 
 export default function CreatePostPage() {
   const { name } = useParams<{ name: string }>();
   const navigate = useNavigate();
+  const loaderData = useLoaderData<typeof loader>();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const { data: subreddit, isLoading: subredditLoading } = trpc.subreddits.getByName.useQuery(
+  const { data: subreddit } = trpc.subreddits.getByName.useQuery(
     { name: name! },
-    { enabled: !!name },
+    { enabled: !!name, initialData: loaderData?.subreddit },
   );
 
   const createMutation = trpc.posts.create.useMutation({
@@ -35,10 +52,6 @@ export default function CreatePostPage() {
       body: body || undefined,
     });
   };
-
-  if (subredditLoading) {
-    return <div className="p-8">Loading...</div>;
-  }
 
   if (!subreddit) {
     return (
