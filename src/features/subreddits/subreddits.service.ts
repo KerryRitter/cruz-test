@@ -11,25 +11,23 @@ export class SubredditsService {
   ) {}
 
   async create(userId: string, input: CreateSubredditInput) {
-    return this.db.transaction(async (tx) => {
-      const [subreddit] = await tx.insert(subreddits)
-        .values({
-          name: input.name,
-          title: input.title,
-          description: input.description,
-          createdById: userId,
-        })
-        .returning();
+    const [subreddit] = await this.db
+      .insert(subreddits)
+      .values({
+        name: input.name,
+        title: input.title,
+        description: input.description,
+        createdById: userId,
+      })
+      .returning();
 
-      await tx.insert(subredditMembers)
-        .values({
-          subredditId: subreddit.id,
-          userId,
-          role: 'moderator',
-        });
-
-      return subreddit;
+    await this.db.insert(subredditMembers).values({
+      subredditId: subreddit.id,
+      userId,
+      role: 'moderator',
     });
+
+    return subreddit;
   }
 
   async list() {

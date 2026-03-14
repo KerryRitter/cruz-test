@@ -20,6 +20,10 @@ export default createCruzRoutes({
   dir: import.meta.dirname,
   framework: {
     registrars: [registerCruzStartRoutes],
+    overrides: {
+      'auth/login': { file: 'routes/auth/login.tsx' },
+      'auth/register': { file: 'routes/auth/register.tsx' },
+    },
   },
   featureRoutes: [subredditsRoutes, postsRoutes, moderationRoutes, karmaRoutes],
   routes: [

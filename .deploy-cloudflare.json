@@ -1,0 +1,19 @@
+{
+  "version": "4.0.0",
+  "pagesProject": "cruz-test",
+  "cloudflareEnvironments": [
+    {
+      "name": "production",
+      "accountId": "f9296c16a93f1ab8bb64d0d3e0eee0f8",
+      "d1": {
+        "name": "cruz-test-production-db",
+        "databaseId": "d588ef57-2339-4cb5-8f4b-09da3719869c"
+      },
+      "kv": {
+        "name": "CACHE_KV",
+        "namespaceId": "8551e10d628c45249f77e420a3ab6999"
+      },
+      "createdAt": "2026-03-14T00:00:00.000Z"
+    }
+  ]
+}
