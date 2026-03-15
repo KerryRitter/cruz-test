@@ -1,20 +1,17 @@
 import { z } from 'zod';
-import { getAppContainer } from '@cruzjs/core';
-import { router, publicProcedure, protectedProcedure } from '@cruzjs/core/trpc/context';
+import { Inject, Router, Route, TrpcRouter } from '@cruzjs/core';
+import { publicProcedure, protectedProcedure } from '@cruzjs/core/trpc/context';
 import { KarmaService } from './karma.service';
 
-export const karmaTrpc = router({
-  getMyKarma: protectedProcedure.query(async ({ ctx }) => {
-    const container = await getAppContainer();
-    const service = container.resolve(KarmaService);
-    return service.getKarma(ctx.session.user.id);
-  }),
+@Router()
+export class KarmaTrpc extends TrpcRouter {
+  @Inject(KarmaService) private karmaService!: KarmaService;
 
-  getUserKarma: publicProcedure
+  @Route() getMyKarma = protectedProcedure.query(async ({ ctx }) =>
+    this.karmaService.getKarma(ctx.session.user.id));
+
+  @Route() getUserKarma = publicProcedure
     .input(z.object({ userId: z.string() }))
-    .query(async ({ input }) => {
-      const container = await getAppContainer();
-      const service = container.resolve(KarmaService);
-      return service.getKarma(input.userId);
-    }),
-});
+    .query(async ({ input }) =>
+      this.karmaService.getKarma(input.userId));
+}

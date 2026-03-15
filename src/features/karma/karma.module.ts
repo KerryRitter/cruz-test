@@ -1,12 +1,12 @@
 import { Module } from '@cruzjs/core/di';
 import { KarmaService } from './karma.service';
-import { karmaTrpc } from './karma.trpc';
+import { KarmaTrpc } from './karma.trpc';
 import { karmaRoutes } from './karma.routes';
 
 @Module({
-  providers: [KarmaService],
+  providers: [KarmaService, KarmaTrpc],
   routers: {
-    karma: karmaTrpc,
+    karma: KarmaTrpc,
   },
   routes: karmaRoutes,
 })

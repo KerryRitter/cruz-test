@@ -1,11 +1,11 @@
 import { Module } from '@cruzjs/core/di';
 import { VotesService } from './votes.service';
-import { votesTrpc } from './votes.trpc';
+import { VotesTrpc } from './votes.trpc';
 
 @Module({
-  providers: [VotesService],
+  providers: [VotesService, VotesTrpc],
   routers: {
-    votes: votesTrpc,
+    votes: VotesTrpc,
   },
 })
 export class VotesModule {}

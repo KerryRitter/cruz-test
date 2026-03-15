@@ -1,11 +1,11 @@
 import { Module } from '@cruzjs/core/di';
 import { CommentsService } from './comments.service';
-import { commentsTrpc } from './comments.trpc';
+import { CommentsTrpc } from './comments.trpc';
 
 @Module({
-  providers: [CommentsService],
+  providers: [CommentsService, CommentsTrpc],
   routers: {
-    comments: commentsTrpc,
+    comments: CommentsTrpc,
   },
 })
 export class CommentsModule {}
