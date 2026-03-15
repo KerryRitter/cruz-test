@@ -1,4 +1,4 @@
-// Setup MUST be imported first - registers providers before any bootstrap
+// Setup MUST be imported first - registers schema before any bootstrap
 import '@/setup.server';
 
 import type { AppLoadContext, EntryContext } from 'react-router';
