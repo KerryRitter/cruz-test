@@ -4,7 +4,7 @@ import { CommentsTrpc } from './comments.trpc';
 
 @Module({
   providers: [CommentsService, CommentsTrpc],
-  routers: {
+  trpcRouters: {
     comments: CommentsTrpc,
   },
 })

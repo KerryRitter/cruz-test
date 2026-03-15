@@ -5,9 +5,9 @@ import { subredditsRoutes } from './subreddits.routes';
 
 @Module({
   providers: [SubredditsService, SubredditsTrpc],
-  routers: {
+  trpcRouters: {
     subreddits: SubredditsTrpc,
   },
-  routes: subredditsRoutes,
+  pageRoutes: subredditsRoutes,
 })
 export class SubredditsModule {}

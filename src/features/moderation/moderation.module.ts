@@ -5,9 +5,9 @@ import { moderationRoutes } from './moderation.routes';
 
 @Module({
   providers: [ModerationService, ModerationTrpc],
-  routers: {
+  trpcRouters: {
     moderation: ModerationTrpc,
   },
-  routes: moderationRoutes,
+  pageRoutes: moderationRoutes,
 })
 export class ModerationModule {}

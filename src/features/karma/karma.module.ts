@@ -5,9 +5,9 @@ import { karmaRoutes } from './karma.routes';
 
 @Module({
   providers: [KarmaService, KarmaTrpc],
-  routers: {
+  trpcRouters: {
     karma: KarmaTrpc,
   },
-  routes: karmaRoutes,
+  pageRoutes: karmaRoutes,
 })
 export class KarmaModule {}

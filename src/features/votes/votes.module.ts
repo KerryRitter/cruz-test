@@ -4,7 +4,7 @@ import { VotesTrpc } from './votes.trpc';
 
 @Module({
   providers: [VotesService, VotesTrpc],
-  routers: {
+  trpcRouters: {
     votes: VotesTrpc,
   },
 })

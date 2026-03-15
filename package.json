@@ -15,6 +15,7 @@
     "deploy": "cruz deploy production"
   },
   "dependencies": {
+    "@cruzjs/adapter-cloudflare": "^0.1.0",
     "@cruzjs/core": "^0.1.10",
     "@cruzjs/pro": "^0.1.5",
     "@cruzjs/start": "^0.1.7",

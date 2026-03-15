@@ -5,15 +5,31 @@ import { setUserProviders } from "@cruzjs/core/framework/application.server";
 import type { ServiceProvider } from "@cruzjs/core/framework/service-provider";
 import * as schema from "@/database/schema";
 import { StartProvider } from "@cruzjs/start/start.provider";
-import { SubredditsProvider } from "@/features/subreddits/subreddits.provider";
-import { PostsProvider } from "@/features/posts/posts.provider";
-import { VotesProvider } from "@/features/votes/votes.provider";
-import { CommentsProvider } from "@/features/comments/comments.provider";
-import { KarmaProvider } from "@/features/karma/karma.provider";
-import { ModerationProvider } from "@/features/moderation/moderation.provider";
+
+// Feature modules (no more ServiceProvider wrappers needed)
+import { SubredditsModule } from "@/features/subreddits/subreddits.module";
+import { PostsModule } from "@/features/posts/posts.module";
+import { VotesModule } from "@/features/votes/votes.module";
+import { CommentsModule } from "@/features/comments/comments.module";
+import { KarmaModule } from "@/features/karma/karma.module";
+import { ModerationModule } from "@/features/moderation/moderation.module";
 
 DrizzleService.setSchema(schema);
 
-export const userProviders: ServiceProvider[] = [new StartProvider(), SubredditsProvider, PostsProvider, VotesProvider, CommentsProvider, KarmaProvider, ModerationProvider];
+export const userModules = [
+  SubredditsModule,
+  PostsModule,
+  VotesModule,
+  CommentsModule,
+  KarmaModule,
+  ModerationModule,
+];
 
-setUserProviders(() => userProviders);
+// StartProvider uses legacy ServiceProvider pattern for boot/event hooks
+export const startProvider = new StartProvider();
+
+// Legacy: setUserProviders for tRPC handler and middleware backward compat
+setUserProviders(() => [
+  startProvider,
+  ...userModules.map((m): ServiceProvider => ({ module: m })),
+]);

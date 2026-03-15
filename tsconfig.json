@@ -18,6 +18,8 @@
     "emitDecoratorMetadata": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@cruzjs/adapter-cloudflare": ["./node_modules/@cruzjs/adapter-cloudflare/src/index.ts"],
+      "@cruzjs/adapter-cloudflare/*": ["./node_modules/@cruzjs/adapter-cloudflare/src/*"],
       "@cruzjs/core": ["./node_modules/@cruzjs/core/src/index.ts"],
       "@cruzjs/core/*": ["./node_modules/@cruzjs/core/src/*"],
       "@cruzjs/start": ["./node_modules/@cruzjs/start/src/index.ts"],

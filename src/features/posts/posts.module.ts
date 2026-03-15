@@ -5,9 +5,9 @@ import { postsRoutes } from './posts.routes';
 
 @Module({
   providers: [PostsService, PostsTrpc],
-  routers: {
+  trpcRouters: {
     posts: PostsTrpc,
   },
-  routes: postsRoutes,
+  pageRoutes: postsRoutes,
 })
 export class PostsModule {}
